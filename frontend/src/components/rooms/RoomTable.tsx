@@ -15,8 +15,8 @@ import {
   PencilIcon, 
   TrashIcon, 
   EyeIcon,
-  ArrowPathIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  UserPlusIcon
 } from '@heroicons/react/24/outline'
 
 interface RoomTableProps {
@@ -25,6 +25,7 @@ interface RoomTableProps {
   onEdit?: (room: Room) => void
   onDelete?: (room: Room) => void
   onStatusChange?: (room: Room) => void
+  onAddTenant?: (room: Room) => void
 }
 
 export function RoomTable({ 
@@ -32,7 +33,8 @@ export function RoomTable({
   onView,
   onEdit, 
   onDelete, 
-  onStatusChange 
+  onStatusChange,
+  onAddTenant 
 }: RoomTableProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -103,6 +105,17 @@ export function RoomTable({
                       >
                         <EyeIcon className="h-4 w-4" />
                       </Button>
+                      {room.status === 'AVAILABLE' && onAddTenant && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onAddTenant(room)}
+                          title="Thêm khách thuê"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <UserPlusIcon className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

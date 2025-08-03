@@ -4,16 +4,18 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RoomStatusBadge } from './RoomStatusBadge'
 import type { Room } from '@/types/room'
-import { MapPinIcon, UsersIcon, CurrencyDollarIcon, EyeIcon, Cog6ToothIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, UsersIcon, CurrencyDollarIcon, UserPlusIcon } from '@heroicons/react/24/outline'
 
 interface RoomCardProps {
   room: Room
   onClick?: (room: Room) => void
+  onAddTenant?: (room: Room) => void
 }
 
 export function RoomCard({ 
   room, 
   onClick,
+  onAddTenant,
 }: RoomCardProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -51,11 +53,11 @@ export function RoomCard({
             <p className="font-medium">{room.area}m²</p>
           </div>
           <div>
-            <span className="text-gray-600">Loại phòng:</span>
+            <span className="text-gray-600">Sức chứa:</span>
             <p className="font-medium">{room.type}</p>
           </div>
           <div>
-            <span className="text-gray-600">Giá cơ bản:</span>
+            <span className="text-gray-600">Đơn giá phòng:</span>
             <p className="font-medium text-green-600">
               {formatCurrency(room.basePrice)}
             </p>
@@ -78,6 +80,23 @@ export function RoomCard({
           )}
         </div>
       </CardContent>
+
+      {/* Add Tenant Button for Available Rooms */}
+      {room.status === 'AVAILABLE' && onAddTenant && (
+        <CardFooter className="pt-0">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation()
+              onAddTenant(room)
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            size="sm"
+          >
+            <UserPlusIcon className="h-4 w-4 mr-2" />
+            Thêm khách thuê
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

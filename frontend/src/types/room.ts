@@ -75,7 +75,7 @@ export interface MeterReading {
   electricScanConfidence?: number
   waterScanConfidence?: number
   isAiScanned: boolean
-  aiScanMetadata?: any
+  aiScanMetadata?: Record<string, unknown>
   verifiedBy?: string
   verifiedAt?: string
 }
@@ -127,5 +127,5 @@ export interface ApiResponse<T> {
 export interface ApiError {
   error: string
   message: string
-  details?: any
+  details?: Record<string, unknown>
 }

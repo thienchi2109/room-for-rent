@@ -177,6 +177,108 @@ export const updateRoomSchema = Joi.object({
   'object.min': 'At least one field must be provided for update'
 })
 
+// Tenant creation validation schema
+export const createTenantSchema = Joi.object({
+  fullName: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Full name is required',
+      'string.min': 'Full name must be at least 2 characters long',
+      'string.max': 'Full name must not exceed 100 characters'
+    }),
+
+  dateOfBirth: Joi.date()
+    .max('now')
+    .required()
+    .messages({
+      'date.base': 'Date of birth must be a valid date',
+      'date.max': 'Date of birth cannot be in the future',
+      'any.required': 'Date of birth is required'
+    }),
+
+  idCard: Joi.string()
+    .pattern(/^[0-9]{9,12}$/)
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'ID card number is required',
+      'string.pattern.base': 'ID card number must be 9-12 digits',
+      'any.required': 'ID card number is required'
+    }),
+
+  hometown: Joi.string()
+    .min(2)
+    .max(200)
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Hometown is required',
+      'string.min': 'Hometown must be at least 2 characters long',
+      'string.max': 'Hometown must not exceed 200 characters'
+    }),
+
+  phone: Joi.string()
+    .pattern(/^[0-9+\-\s()]{10,15}$/)
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Phone number is required',
+      'string.pattern.base': 'Phone number must be 10-15 digits and may contain +, -, spaces, or parentheses',
+      'any.required': 'Phone number is required'
+    })
+})
+
+// Tenant update validation schema (all fields optional)
+export const updateTenantSchema = Joi.object({
+  fullName: Joi.string()
+    .min(2)
+    .max(100)
+    .trim()
+    .messages({
+      'string.empty': 'Full name cannot be empty',
+      'string.min': 'Full name must be at least 2 characters long',
+      'string.max': 'Full name must not exceed 100 characters'
+    }),
+
+  dateOfBirth: Joi.date()
+    .max('now')
+    .messages({
+      'date.base': 'Date of birth must be a valid date',
+      'date.max': 'Date of birth cannot be in the future'
+    }),
+
+  idCard: Joi.string()
+    .pattern(/^[0-9]{9,12}$/)
+    .trim()
+    .messages({
+      'string.empty': 'ID card number cannot be empty',
+      'string.pattern.base': 'ID card number must be 9-12 digits'
+    }),
+
+  hometown: Joi.string()
+    .min(2)
+    .max(200)
+    .trim()
+    .messages({
+      'string.empty': 'Hometown cannot be empty',
+      'string.min': 'Hometown must be at least 2 characters long',
+      'string.max': 'Hometown must not exceed 200 characters'
+    }),
+
+  phone: Joi.string()
+    .pattern(/^[0-9+\-\s()]{10,15}$/)
+    .trim()
+    .messages({
+      'string.empty': 'Phone number cannot be empty',
+      'string.pattern.base': 'Phone number must be 10-15 digits and may contain +, -, spaces, or parentheses'
+    })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+})
+
 // Validation middleware factory
 export function validateRequest(schema: Joi.ObjectSchema) {
   return (req: any, res: any, next: any) => {

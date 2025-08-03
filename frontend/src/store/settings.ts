@@ -28,7 +28,7 @@ const defaultSettings: Settings = {
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       settings: defaultSettings,
       
       updateGeneralSettings: (newSettings) => 

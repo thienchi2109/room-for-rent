@@ -72,7 +72,9 @@
     - _Requirements: 1.6, 1.7_
 
 - [ ] 5. Implement tenant management system
-  - [ ] 5.1 Create tenant CRUD API endpoints
+  - [x] 5.1 Create tenant CRUD API endpoints
+
+
     - Implement GET /api/tenants with search and pagination
     - Implement POST /api/tenants for creating new tenants
     - Implement PUT /api/tenants/:id for updating tenant information
@@ -80,11 +82,12 @@
     - Add tenant history tracking endpoints
     - _Requirements: 2.1, 2.2, 2.3, 2.6_
 
-  - [ ] 5.2 Build tenant management UI components
+  - [x] 5.2 Build tenant management UI components
     - Create tenant list with search functionality
     - Implement tenant creation and editing forms
     - Add tenant profile view with rental history
     - Create tenant deletion with validation
+    - Improved dialog padding and spacing for better UX
     - _Requirements: 2.1, 2.2, 2.3, 2.5, 2.6_
 
   - [ ] 5.3 Implement residency record management

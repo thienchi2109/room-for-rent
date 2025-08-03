@@ -51,11 +51,10 @@ export function LoginForm() {
     try {
       await login(formData.username, formData.password)
       router.push('/dashboard') // Redirect to dashboard after successful login
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login failed:', err)
-      setError(
-        err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
-      )
+      const errorMessage = err instanceof Error ? err.message : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+      setError(errorMessage)
     }
   }
 

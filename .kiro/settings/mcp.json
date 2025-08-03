@@ -11,6 +11,10 @@
         "D:\\room-for-rent",
         "--context",
         "ide-assistant"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "get_symbols_overview"
       ]
     }
   }

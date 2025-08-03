@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Search, Filter } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { RoomCard } from '@/components/rooms/RoomCard'
@@ -10,6 +10,7 @@ import { RoomForm } from '@/components/rooms/RoomForm'
 import { RoomStatusDialog } from '@/components/rooms/RoomStatusDialog'
 import { RoomDetailsDialog } from '@/components/rooms/RoomDetailsDialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { TenantDialogFromRoom } from '@/components/tenants/TenantDialogFromRoom'
 import { useRooms, useCreateRoom, useUpdateRoom, useUpdateRoomStatus, useDeleteRoom } from '@/hooks/useRooms'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import type { Room, RoomStatus, CreateRoomData, UpdateRoomData } from '@/types/room'
@@ -25,6 +26,7 @@ export default function RoomsPage() {
   const [statusRoom, setStatusRoom] = useState<Room | null>(null)
   const [deletingRoom, setDeletingRoom] = useState<Room | null>(null)
   const [detailsRoom, setDetailsRoom] = useState<Room | null>(null)
+  const [addTenantRoom, setAddTenantRoom] = useState<Room | null>(null)
 
   const { data: roomsResponse, isLoading, error } = useRooms()
   const createRoomMutation = useCreateRoom()
@@ -58,7 +60,7 @@ export default function RoomsPage() {
       await createRoomMutation.mutateAsync(data as CreateRoomData)
       setShowCreateForm(false)
       toast.success('Tạo phòng thành công!')
-    } catch (error) {
+    } catch {
       toast.error('Không thể tạo phòng. Vui lòng thử lại.')
     }
   }
@@ -73,7 +75,7 @@ export default function RoomsPage() {
       })
       setEditingRoom(null)
       toast.success('Cập nhật phòng thành công!')
-    } catch (error) {
+    } catch {
       toast.error('Không thể cập nhật phòng. Vui lòng thử lại.')
     }
   }
@@ -86,13 +88,13 @@ export default function RoomsPage() {
       })
       setStatusRoom(null)
       toast.success('Cập nhật trạng thái thành công!')
-    } catch (error) {
+    } catch {
       toast.error('Không thể cập nhật trạng thái. Vui lòng thử lại.')
     }
   }
 
-  const handleDeleteRoom = async (room: Room) => {
-    setDeletingRoom(room)
+  const handleAddTenant = (room: Room) => {
+    setAddTenantRoom(room)
   }
 
   const confirmDeleteRoom = async () => {
@@ -102,7 +104,7 @@ export default function RoomsPage() {
       await deleteRoomMutation.mutateAsync(deletingRoom.id)
       setDeletingRoom(null)
       toast.success('Xóa phòng thành công!')
-    } catch (error) {
+    } catch {
       toast.error('Không thể xóa phòng. Vui lòng thử lại.')
     }
   }
@@ -225,6 +227,7 @@ export default function RoomsPage() {
               key={room.id}
               room={room}
               onClick={() => setDetailsRoom(room)}
+              onAddTenant={handleAddTenant}
             />
           ))}
         </div>
@@ -235,6 +238,7 @@ export default function RoomsPage() {
           onEdit={setEditingRoom}
           onDelete={setDeletingRoom}
           onStatusChange={setStatusRoom}
+          onAddTenant={handleAddTenant}
         />
       ) : (
         // Floor view
@@ -253,7 +257,7 @@ export default function RoomsPage() {
                     <div
                       key={room.id}
                       className={`
-                        aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 cursor-pointer
+                        aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 cursor-pointer relative group
                         transition-all duration-200 hover:scale-105 hover:shadow-md
                         ${room.status === 'AVAILABLE' ? 'bg-green-50 border-green-200 hover:bg-green-100' :
                           room.status === 'OCCUPIED' ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' :
@@ -273,6 +277,22 @@ export default function RoomsPage() {
                           room.status === 'MAINTENANCE' ? 'bg-red-500' :
                           'bg-yellow-500'}
                       `} />
+                      
+                      {/* Add Tenant Button for Available Rooms in Floor View */}
+                      {room.status === 'AVAILABLE' && (
+                        <div className="absolute inset-0 bg-green-600 bg-opacity-0 group-hover:bg-opacity-10 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+                          <Button
+                            size="sm"
+                            className="text-xs px-2 py-1 h-auto bg-green-600 hover:bg-green-700 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAddTenant(room)
+                            }}
+                          >
+                            + Thuê
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -355,6 +375,10 @@ export default function RoomsPage() {
           setDetailsRoom(null)
           setStatusRoom(detailsRoom)
         }}
+        onAddTenant={() => {
+          setDetailsRoom(null)
+          setAddTenantRoom(detailsRoom)
+        }}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -373,6 +397,20 @@ export default function RoomsPage() {
         variant="destructive"
         isLoading={deleteRoomMutation.isPending}
       />
+
+      {/* Add Tenant Dialog */}
+      {addTenantRoom && (
+        <TenantDialogFromRoom
+          roomNumber={addTenantRoom.number}
+          roomId={addTenantRoom.id}
+          open={!!addTenantRoom}
+          onOpenChange={(open) => !open && setAddTenantRoom(null)}
+          onSuccess={() => {
+            setAddTenantRoom(null)
+            toast.success(`Đã thêm khách thuê cho phòng ${addTenantRoom.number}!`)
+          }}
+        />
+      )}
     </div>
   )
 }

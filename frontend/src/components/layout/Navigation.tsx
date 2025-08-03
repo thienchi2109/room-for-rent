@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Building, Users, FileText, Settings, LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Home, Building, Users, FileText, Settings } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { useSettingsStore } from '@/store/settings'
 import { LogoutButton } from '@/components/auth/LogoutButton'

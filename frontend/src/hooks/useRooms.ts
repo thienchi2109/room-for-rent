@@ -120,12 +120,13 @@ export function useUpdateRoomStatus() {
       // Optimistically update rooms list
       queryClient.setQueriesData(
         { queryKey: roomQueryKeys.lists() },
-        (oldData: any) => {
-          if (!oldData) return oldData
+        (oldData: unknown) => {
+          if (!oldData || typeof oldData !== 'object') return oldData
           
+          const data = oldData as { data: Room[] }
           return {
-            ...oldData,
-            data: oldData.data.map((room: Room) =>
+            ...data,
+            data: data.data.map((room: Room) =>
               room.id === variables.id
                 ? { ...room, status: variables.status }
                 : room

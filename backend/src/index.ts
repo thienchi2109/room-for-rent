@@ -5,6 +5,7 @@ import morgan from 'morgan'
 import dotenv from 'dotenv'
 import authRoutes from './routes/auth'
 import roomRoutes from './routes/rooms'
+import tenantRoutes from './routes/tenants'
 import dashboardRoutes from './routes/dashboard'
 
 // Load environment variables
@@ -35,6 +36,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/rooms', roomRoutes)
+app.use('/api/tenants', tenantRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 
 app.get('/api', (req, res) => {

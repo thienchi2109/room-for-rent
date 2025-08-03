@@ -1,13 +1,11 @@
 'use client'
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import { Button } from '@/components/ui/button'
 import { Building, Users, FileText, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import apiClient from '@/lib/api'
 import type { DashboardStats } from '@/types/dashboard'
-import { formatCurrency } from '@/lib/utils'
 
 export default function DashboardPage() {
   const { data: stats, isLoading, error } = useQuery<DashboardStats>({

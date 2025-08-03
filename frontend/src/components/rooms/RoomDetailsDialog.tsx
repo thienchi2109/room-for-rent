@@ -14,7 +14,7 @@ import { RoomStatusBadge } from './RoomStatusBadge'
 import { formatCurrency } from '@/lib/utils'
 import type { Room } from '@/types/room'
 import { Building, MapPin, Ruler, Calendar, DollarSign } from 'lucide-react'
-import { PencilIcon, TrashIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, TrashIcon, Cog6ToothIcon, UserPlusIcon } from '@heroicons/react/24/outline'
 
 interface RoomDetailsDialogProps {
   room: Room | null
@@ -23,6 +23,7 @@ interface RoomDetailsDialogProps {
   onEdit: (room: Room) => void
   onDelete: (room: Room) => void
   onStatusChange: (room: Room) => void
+  onAddTenant?: (room: Room) => void
 }
 
 export function RoomDetailsDialog({
@@ -31,7 +32,8 @@ export function RoomDetailsDialog({
   onOpenChange,
   onEdit,
   onDelete,
-  onStatusChange
+  onStatusChange,
+  onAddTenant
 }: RoomDetailsDialogProps) {
   if (!room) return null
 
@@ -189,29 +191,42 @@ export function RoomDetailsDialog({
           )}
         </div>
         <DialogFooter className="pt-4 border-t">
-          <div className="flex justify-end gap-2 w-full">
-            <Button
-              variant="outline"
-              onClick={() => onStatusChange(room)}
-            >
-              <Cog6ToothIcon className="w-4 h-4 mr-2" />
-              Đổi trạng thái
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onEdit(room)}
-            >
-              <PencilIcon className="w-4 h-4 mr-2" />
-              Chỉnh sửa
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => onDelete(room)}
-              disabled={room.status === 'OCCUPIED' || activeContracts > 0}
-            >
-              <TrashIcon className="w-4 h-4 mr-2" />
-              Xóa phòng
-            </Button>
+          <div className="flex justify-between w-full">
+            {/* Add Tenant Button for Available Rooms */}
+            {room.status === 'AVAILABLE' && onAddTenant && (
+              <Button
+                onClick={() => onAddTenant(room)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <UserPlusIcon className="w-4 h-4 mr-2" />
+                Thêm khách thuê
+              </Button>
+            )}
+            
+            <div className="flex gap-2 ml-auto">
+              <Button
+                variant="outline"
+                onClick={() => onStatusChange(room)}
+              >
+                <Cog6ToothIcon className="w-4 h-4 mr-2" />
+                Đổi trạng thái
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onEdit(room)}
+              >
+                <PencilIcon className="w-4 h-4 mr-2" />
+                Chỉnh sửa
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => onDelete(room)}
+                disabled={room.status === 'OCCUPIED' || activeContracts > 0}
+              >
+                <TrashIcon className="w-4 h-4 mr-2" />
+                Xóa phòng
+              </Button>
+            </div>
           </div>
         </DialogFooter>
       </DialogContent>
