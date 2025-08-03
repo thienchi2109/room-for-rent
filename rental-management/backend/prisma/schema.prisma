@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core Models
+model Room {
+  id          String   @id @default(cuid())
+  number      String   @unique
+  floor       Int
+  area        Float
+  type        String
+  basePrice   Decimal
+  status      RoomStatus @default(AVAILABLE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  contracts   Contract[]
+  bills       Bill[]
+  meterReadings MeterReading[]
+  
+  @@map("rooms")
+}
+
+model Tenant {
+  id          String   @id @default(cuid())
+  fullName    String
+  dateOfBirth DateTime
+  idCard      String   @unique
+  hometown    String
+  phone       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  contracts   ContractTenant[]
+  residencyRecords ResidencyRecord[]
+  
+  @@map("tenants")
+}
+
+model Contract {
+  id          String   @id @default(cuid())
+  contractNumber String @unique
+  roomId      String
+  startDate   DateTime
+  endDate     DateTime
+  deposit     Decimal
+  status      ContractStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  room        Room @relation(fields: [roomId], references: [id])
+  tenants     ContractTenant[]
+  bills       Bill[]
+  
+  @@map("contracts")
+}
+
+model ContractTenant {
+  contractId  String
+  tenantId    String
+  isPrimary   Boolean @default(false)
+  
+  contract    Contract @relation(fields: [contractId], references: [id])
+  tenant      Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@id([contractId, tenantId])
+  @@map("contract_tenants")
+}
+
+model Bill {
+  id          String   @id @default(cuid())
+  contractId  String
+  roomId      String
+  month       Int
+  year        Int
+  rentAmount  Decimal
+  electricAmount Decimal
+  waterAmount Decimal
+  serviceAmount Decimal @default(0)
+  totalAmount Decimal
+  status      BillStatus @default(UNPAID)
+  dueDate     DateTime
+  paidDate    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  contract    Contract @relation(fields: [contractId], references: [id])
+  room        Room @relation(fields: [roomId], references: [id])
+  
+  @@unique([contractId, month, year])
+  @@map("bills")
+}
+
+model MeterReading {
+  id          String   @id @default(cuid())
+  roomId      String
+  month       Int
+  year        Int
+  electricReading Int
+  waterReading Int
+  createdAt   DateTime @default(now())
+  
+  // AI Scanning metadata (no images stored)
+  electricScanConfidence Float?   // AI confidence for electric reading
+  waterScanConfidence    Float?   // AI confidence for water reading
+  isAiScanned           Boolean  @default(false)
+  aiScanMetadata        Json?    // Store scan metadata only (timestamp, confidence, etc.)
+  verifiedBy            String?  // User who verified AI reading
+  verifiedAt            DateTime?
+  
+  room        Room @relation(fields: [roomId], references: [id])
+  
+  @@unique([roomId, month, year])
+  @@map("meter_readings")
+}
+
+model ResidencyRecord {
+  id          String   @id @default(cuid())
+  tenantId    String
+  type        ResidencyType
+  startDate   DateTime
+  endDate     DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  tenant      Tenant @relation(fields: [tenantId], references: [id])
+  
+  @@map("residency_records")
+}
+
+model Settings {
+  id          String   @id @default(cuid())
+  category    String   // 'general', 'pricing', 'invoice', 'facility'
+  key         String   
+  value       String
+  dataType    String   @default("string") // 'string', 'number', 'boolean', 'json'
+  description String?
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([category, key])
+  @@map("settings")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  password    String
+  fullName    String
+  role        UserRole @default(ADMIN)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("users")
+}
+
+// Enums
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  MAINTENANCE
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum BillStatus {
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+enum ResidencyType {
+  TEMPORARY_RESIDENCE
+  TEMPORARY_ABSENCE
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}

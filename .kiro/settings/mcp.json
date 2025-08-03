@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "D:\\serena",
+        "serena-mcp-server",
+        "--project",
+        "D:\\room-for-rent",
+        "--context",
+        "ide-assistant"
+      ]
+    }
+  }
+}
