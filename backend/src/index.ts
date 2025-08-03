@@ -4,6 +4,8 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
 import authRoutes from './routes/auth'
+import roomRoutes from './routes/rooms'
+import dashboardRoutes from './routes/dashboard'
 
 // Load environment variables
 dotenv.config()
@@ -32,6 +34,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes)
+app.use('/api/rooms', roomRoutes)
+app.use('/api/dashboard', dashboardRoutes)
 
 app.get('/api', (req, res) => {
   res.json({ message: 'Rental Management API Server' })

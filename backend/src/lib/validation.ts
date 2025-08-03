@@ -78,6 +78,105 @@ export const changePasswordSchema = Joi.object({
     })
 })
 
+// Room creation validation schema
+export const createRoomSchema = Joi.object({
+  number: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Room number is required'
+    }),
+  
+  floor: Joi.number()
+    .integer()
+    .min(1)
+    .required()
+    .messages({
+      'number.base': 'Floor must be a number',
+      'number.integer': 'Floor must be an integer',
+      'number.min': 'Floor must be at least 1',
+      'any.required': 'Floor is required'
+    }),
+  
+  area: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      'number.base': 'Area must be a number',
+      'number.positive': 'Area must be a positive number',
+      'any.required': 'Area is required'
+    }),
+  
+  type: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Room type is required'
+    }),
+  
+  basePrice: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      'number.base': 'Base price must be a number',
+      'number.positive': 'Base price must be a positive number',
+      'any.required': 'Base price is required'
+    }),
+  
+  status: Joi.string()
+    .valid('AVAILABLE', 'OCCUPIED', 'RESERVED', 'MAINTENANCE')
+    .default('AVAILABLE')
+    .messages({
+      'any.only': 'Status must be one of: AVAILABLE, OCCUPIED, RESERVED, MAINTENANCE'
+    })
+})
+
+// Room update validation schema (all fields optional)
+export const updateRoomSchema = Joi.object({
+  number: Joi.string()
+    .trim()
+    .messages({
+      'string.empty': 'Room number cannot be empty'
+    }),
+  
+  floor: Joi.number()
+    .integer()
+    .min(1)
+    .messages({
+      'number.base': 'Floor must be a number',
+      'number.integer': 'Floor must be an integer',
+      'number.min': 'Floor must be at least 1'
+    }),
+  
+  area: Joi.number()
+    .positive()
+    .messages({
+      'number.base': 'Area must be a number',
+      'number.positive': 'Area must be a positive number'
+    }),
+  
+  type: Joi.string()
+    .trim()
+    .messages({
+      'string.empty': 'Room type cannot be empty'
+    }),
+  
+  basePrice: Joi.number()
+    .positive()
+    .messages({
+      'number.base': 'Base price must be a number',
+      'number.positive': 'Base price must be a positive number'
+    }),
+  
+  status: Joi.string()
+    .valid('AVAILABLE', 'OCCUPIED', 'RESERVED', 'MAINTENANCE')
+    .messages({
+      'any.only': 'Status must be one of: AVAILABLE, OCCUPIED, RESERVED, MAINTENANCE'
+    })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+})
+
 // Validation middleware factory
 export function validateRequest(schema: Joi.ObjectSchema) {
   return (req: any, res: any, next: any) => {

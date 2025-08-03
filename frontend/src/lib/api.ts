@@ -75,6 +75,13 @@ class ApiClient {
     })
   }
 
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'DELETE' })
   }
@@ -82,6 +89,11 @@ class ApiClient {
   // Health check
   async healthCheck() {
     return this.get('/health')
+  }
+
+  // Dashboard API
+  async getDashboardStats() {
+    return this.get('/api/dashboard/stats')
   }
 }
 

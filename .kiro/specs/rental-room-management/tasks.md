@@ -47,8 +47,8 @@
     - Create logout functionality
     - _Requirements: 6.1, 6.5_
 
-- [ ] 4. Implement room management system
-  - [ ] 4.1 Create room CRUD API endpoints
+- [x] 4. Implement room management system
+  - [x] 4.1 Create room CRUD API endpoints
     - Implement GET /api/rooms with pagination and filtering
     - Implement POST /api/rooms for creating new rooms
     - Implement PUT /api/rooms/:id for updating room information
@@ -56,18 +56,19 @@
     - Add room status management endpoints
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-  - [ ] 4.2 Build room management UI components
+  - [x] 4.2 Build room management UI components
     - Create room list view with responsive table/cards
     - Implement room creation and editing forms
     - Add room status indicators and update functionality
     - Create room deletion with confirmation dialog
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-  - [ ] 4.3 Implement interactive room map
+  - [x] 4.3 Implement interactive room map
     - Create responsive grid layout for room visualization
     - Implement color-coded room status display
     - Add click handlers for room details and actions
     - Implement real-time status updates with TanStack Query
+    - Add floor-based filtering and floor view
     - _Requirements: 1.6, 1.7_
 
 - [ ] 5. Implement tenant management system
