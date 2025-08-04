@@ -5,14 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { ContractStatusBadge, ContractStatusInfo } from './ContractStatusBadge'
+import { ContractStatusBadge } from './ContractStatusBadge'
 import { ContractStatusDialog } from './ContractStatusDialog'
 import { 
   Building, 
   Users, 
   Calendar, 
-  CreditCard, 
   FileText, 
   Phone, 
   MapPin, 
@@ -20,7 +18,6 @@ import {
   Settings,
   Receipt,
   Clock,
-  CheckCircle,
   XCircle
 } from 'lucide-react'
 import { ContractWithDetails } from '@/types/contract'
@@ -199,8 +196,8 @@ export function ContractDetailDialog({
                       <span className="font-medium">{contract.room.area}m²</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Loại phòng:</span>
-                      <span className="font-medium">{contract.room.type}</span>
+                      <span className="text-gray-600">Sức chứa:</span>
+                      <span className="font-medium">{contract.room.capacity} người</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Trạng thái phòng:</span>

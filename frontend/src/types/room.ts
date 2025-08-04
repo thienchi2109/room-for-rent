@@ -7,7 +7,7 @@ export interface Room {
   number: string
   floor: number
   area: number
-  type: string
+  capacity: number
   basePrice: number
   status: RoomStatus
   createdAt: string
@@ -84,7 +84,7 @@ export interface CreateRoomData {
   number: string
   floor: number
   area: number
-  type: string
+  capacity: number
   basePrice: number
   status?: RoomStatus
 }
@@ -93,7 +93,7 @@ export interface UpdateRoomData {
   number?: string
   floor?: number
   area?: number
-  type?: string
+  capacity?: number
   basePrice?: number
   status?: RoomStatus
 }
@@ -103,7 +103,7 @@ export interface RoomFilters {
   limit?: number
   status?: RoomStatus
   floor?: number
-  type?: string
+  capacity?: number
   search?: string
 }
 

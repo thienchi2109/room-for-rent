@@ -16,7 +16,7 @@ model Room {
   number      String   @unique
   floor       Int
   area        Float
-  type        String
+  capacity    Int
   basePrice   Decimal
   status      RoomStatus @default(AVAILABLE)
   createdAt   DateTime @default(now())

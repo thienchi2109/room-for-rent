@@ -50,7 +50,7 @@ export function RoomTable({
           <TableRow>
             <TableHead className="w-[100px]">Số phòng</TableHead>
             <TableHead>Tầng</TableHead>
-            <TableHead>Loại phòng</TableHead>
+            <TableHead>Sức chứa</TableHead>
             <TableHead>Diện tích</TableHead>
             <TableHead>Giá cơ bản</TableHead>
             <TableHead>Trạng thái</TableHead>
@@ -77,7 +77,7 @@ export function RoomTable({
                     {room.number}
                   </TableCell>
                   <TableCell>{room.floor}</TableCell>
-                  <TableCell>{room.type}</TableCell>
+                  <TableCell>{room.capacity} người</TableCell>
                   <TableCell>{room.area}m²</TableCell>
                   <TableCell className="text-green-600 font-medium">
                     {formatCurrency(room.basePrice)}

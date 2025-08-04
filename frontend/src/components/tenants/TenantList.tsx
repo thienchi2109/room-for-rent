@@ -61,12 +61,6 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
     }
   }
 
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
-  }
-
   const handlePageChange = (newPage: number) => {
     onFiltersChange({ page: newPage })
   }
@@ -293,7 +287,7 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
                     const currentPage = filters.page || 1
                     const totalPages = pagination.totalPages
                     let startPage = Math.max(1, currentPage - 2)
-                    let endPage = Math.min(totalPages, startPage + 4)
+                    const endPage = Math.min(totalPages, startPage + 4)
                     
                     if (endPage - startPage < 4) {
                       startPage = Math.max(1, endPage - 4)

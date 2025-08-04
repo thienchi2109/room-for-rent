@@ -2,7 +2,6 @@
 
 import apiClient from '@/lib/api'
 import type { 
-  ContractWithDetails,
   ContractFormData,
   ContractFilters,
   ContractListResponse,
@@ -14,7 +13,8 @@ import type {
   ContractStatusUpdateData,
   AvailableRoom,
   TenantForContract,
-  ContractStats
+  ContractStats,
+  Room
 } from '@/types/contract'
 
 export class ContractService {
@@ -71,7 +71,7 @@ export class ContractService {
   // Get available rooms for contract creation
   static async getAvailableRooms(): Promise<{ data: AvailableRoom[] }> {
     // Use existing rooms endpoint and filter for available rooms
-    const response = await apiClient.get<{ data: any[], pagination: any }>('/api/rooms?status=AVAILABLE&limit=100')
+    const response = await apiClient.get<{ data: Room[], pagination: { total: number; pages: number; page: number; limit: number } }>('/api/rooms?status=AVAILABLE&limit=100')
     const availableRooms = response.data.map(room => ({
       ...room,
       isAvailable: room.status === 'AVAILABLE'
@@ -82,7 +82,16 @@ export class ContractService {
   // Get tenants available for contract
   static async getAvailableTenants(): Promise<{ data: TenantForContract[] }> {
     // Use existing tenants endpoint
-    const response = await apiClient.get<{ data: any[], pagination: any }>('/api/tenants?limit=100')
+    interface TenantApiResponse {
+      id: string
+      fullName: string
+      phone: string
+      idCard: string
+      dateOfBirth: string
+      hometown: string
+    }
+    
+    const response = await apiClient.get<{ data: TenantApiResponse[], pagination: { total: number; pages: number; page: number; limit: number } }>('/api/tenants?limit=100')
     const tenants = response.data.map(tenant => ({
       ...tenant,
       isSelected: false,

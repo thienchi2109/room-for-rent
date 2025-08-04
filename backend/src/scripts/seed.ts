@@ -64,11 +64,11 @@ async function main() {
 
   // Create sample rooms
   const sampleRooms = [
-    { number: '101', floor: 1, area: 20, type: 'Phòng đơn', basePrice: 2500000 },
-    { number: '102', floor: 1, area: 25, type: 'Phòng đôi', basePrice: 3000000 },
-    { number: '103', floor: 1, area: 20, type: 'Phòng đơn', basePrice: 2500000 },
-    { number: '201', floor: 2, area: 30, type: 'Phòng gia đình', basePrice: 3500000 },
-    { number: '202', floor: 2, area: 25, type: 'Phòng đôi', basePrice: 3000000 },
+    { number: '101', floor: 1, area: 20, capacity: 1, basePrice: 2500000 }, // Phòng đơn = 1 người
+    { number: '102', floor: 1, area: 25, capacity: 2, basePrice: 3000000 }, // Phòng đôi = 2 người
+    { number: '103', floor: 1, area: 20, capacity: 1, basePrice: 2500000 }, // Phòng đơn = 1 người
+    { number: '201', floor: 2, area: 30, capacity: 4, basePrice: 3500000 }, // Phòng gia đình = 4 người
+    { number: '202', floor: 2, area: 25, capacity: 2, basePrice: 3000000 }, // Phòng đôi = 2 người
   ]
 
   for (const room of sampleRooms) {

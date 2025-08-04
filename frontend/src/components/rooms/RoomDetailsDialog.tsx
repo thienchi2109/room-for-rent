@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { RoomStatusBadge } from './RoomStatusBadge'
 import { formatCurrency } from '@/lib/utils'
 import type { Room } from '@/types/room'
-import { Building, MapPin, Ruler, Calendar, DollarSign } from 'lucide-react'
+import { Building, MapPin, Ruler, Calendar, DollarSign, Users } from 'lucide-react'
 import { PencilIcon, TrashIcon, Cog6ToothIcon, UserPlusIcon } from '@heroicons/react/24/outline'
 
 interface RoomDetailsDialogProps {
@@ -83,11 +83,11 @@ export function RoomDetailsDialog({
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Building className="w-4 h-4 text-gray-500" />
+                <Users className="w-4 h-4 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Loại phòng</p>
+                  <p className="text-sm font-medium text-gray-900">Sức chứa</p>
                   <Badge variant="secondary" className="mt-1">
-                    {room.type}
+                    {room.capacity} người
                   </Badge>
                 </div>
               </div>

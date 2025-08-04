@@ -43,7 +43,7 @@ export interface LoginResponse {
 export interface RoomFilters extends PaginationParams {
   status?: string
   floor?: number
-  type?: string
+  capacity?: number
   search?: string
 }
 

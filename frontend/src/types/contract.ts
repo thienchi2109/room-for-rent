@@ -33,7 +33,7 @@ export interface Room {
   number: string
   floor: number
   area: number
-  type: string
+  capacity: number
   basePrice: number
   status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'MAINTENANCE'
 }

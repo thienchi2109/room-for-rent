@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { ContractStatusBadge } from './ContractStatusBadge'
@@ -83,7 +82,7 @@ export function ContractDeleteDialog({
                 <div className="text-red-700 text-sm space-y-1">
                   <p>• Hợp đồng sẽ bị xóa vĩnh viễn khỏi hệ thống</p>
                   <p>• Tất cả dữ liệu liên quan sẽ bị mất</p>
-                  <p>• Trạng thái phòng sẽ được cập nhật về "Có sẵn"</p>
+                  <p>• Trạng thái phòng sẽ được cập nhật về &ldquo;Có sẵn&rdquo;</p>
                   {hasActiveBills && (
                     <p className="font-medium">• Có hóa đơn chưa thanh toán sẽ bị xóa</p>
                   )}
@@ -200,7 +199,7 @@ export function ContractDeleteDialog({
                 <div>
                   <h4 className="font-medium text-yellow-800 mb-1">Hợp đồng đang hoạt động</h4>
                   <p className="text-yellow-700 text-sm">
-                    Hợp đồng này đang ở trạng thái hoạt động. Bạn có thể muốn "Kết thúc" hợp đồng 
+                    Hợp đồng này đang ở trạng thái hoạt động. Bạn có thể muốn &ldquo;Kết thúc&rdquo; hợp đồng 
                     thay vì xóa để giữ lại lịch sử.
                   </p>
                 </div>

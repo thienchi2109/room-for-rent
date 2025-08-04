@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -155,7 +154,7 @@ export function ContractStatusDialog({
                     <h4 className="font-medium text-red-800">Hợp đồng đã quá hạn</h4>
                     <p className="text-red-700 text-sm">
                       Hợp đồng đã quá hạn {Math.abs(ContractService.getRemainingDays(contract.endDate))} ngày. 
-                      Nên chuyển sang trạng thái "Hết hạn" hoặc "Đã kết thúc".
+                      Nên chuyển sang trạng thái &ldquo;Hết hạn&rdquo; hoặc &ldquo;Đã kết thúc&rdquo;.
                     </p>
                   </div>
                 </div>

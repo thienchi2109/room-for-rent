@@ -29,21 +29,24 @@ export function TenantDetailDialog({
 }: TenantDetailDialogProps) {
   const [historyPage, setHistoryPage] = useState(1)
 
+  // Fetch detailed tenant info - always call hooks, but conditionally enable queries
+  const { data: detailData, isLoading: isDetailLoading } = useTenant(
+    tenant?.id || '', 
+    open && !!tenant?.id
+  )
+
+  // Fetch rental history - always call hooks, but conditionally enable queries
+  const { data: historyData, isLoading: isHistoryLoading } = useTenantHistory(
+    tenant?.id || '', 
+    historyPage, 
+    5, 
+    open && !!tenant?.id
+  )
+
   // Early return if tenant is not provided
   if (!tenant) {
     return null
   }
-
-  // Fetch detailed tenant info
-  const { data: detailData, isLoading: isDetailLoading } = useTenant(tenant.id, open)
-
-  // Fetch rental history
-  const { data: historyData, isLoading: isHistoryLoading } = useTenantHistory(
-    tenant.id, 
-    historyPage, 
-    5, 
-    open
-  )
 
   const tenantDetail = detailData?.data || tenant
   

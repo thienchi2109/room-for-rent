@@ -22,7 +22,7 @@ export function RoomForm({ room, onSubmit, onCancel, isLoading }: RoomFormProps)
     number: room?.number || '',
     floor: room?.floor || 1,
     area: room?.area || 0,
-    type: room?.type || '',
+    capacity: room?.capacity || 1,
     basePrice: room?.basePrice || 0,
     status: room?.status || 'AVAILABLE' as RoomStatus
   })
@@ -44,8 +44,8 @@ export function RoomForm({ room, onSubmit, onCancel, isLoading }: RoomFormProps)
       newErrors.area = 'Diện tích phải > 0'
     }
 
-    if (!formData.type.trim()) {
-      newErrors.type = 'Loại phòng là bắt buộc'
+    if (formData.capacity < 1 || formData.capacity > 10) {
+      newErrors.capacity = 'Sức chứa phải từ 1 đến 10 người'
     }
 
     if (formData.basePrice <= 0) {
@@ -132,16 +132,18 @@ export function RoomForm({ room, onSubmit, onCancel, isLoading }: RoomFormProps)
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type">Loại phòng</Label>
+            <Label htmlFor="capacity">Sức chứa (người)</Label>
             <Input
-              id="type"
-              value={formData.type}
-              onChange={(e) => handleInputChange('type', e.target.value)}
-              placeholder="Ví dụ: Phòng đơn, Phòng đôi"
-              className={errors.type ? 'border-red-500' : ''}
+              id="capacity"
+              type="number"
+              min="1"
+              max="10"
+              value={formData.capacity}
+              onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 1)}
+              className={errors.capacity ? 'border-red-500' : ''}
             />
-            {errors.type && (
-              <p className="text-sm text-red-500">{errors.type}</p>
+            {errors.capacity && (
+              <p className="text-sm text-red-500">{errors.capacity}</p>
             )}
           </div>
 

@@ -152,7 +152,7 @@ export function useUpdateContractStatus() {
       // Invalidate rooms list (room status might have changed)
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
       
-      const statusLabel = ContractService.getContractStatusLabel(data.status)
+      const statusLabel = ContractService.getContractStatusLabel(variables.data.status)
       toast.success(`Trạng thái hợp đồng đã được cập nhật thành "${statusLabel}"`)
     },
     onError: (error: Error) => {

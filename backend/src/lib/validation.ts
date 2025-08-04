@@ -107,11 +107,17 @@ export const createRoomSchema = Joi.object({
       'any.required': 'Area is required'
     }),
   
-  type: Joi.string()
+  capacity: Joi.number()
+    .integer()
+    .min(1)
+    .max(10)
     .required()
-    .trim()
     .messages({
-      'string.empty': 'Room type is required'
+      'number.base': 'Capacity must be a number',
+      'number.integer': 'Capacity must be an integer',
+      'number.min': 'Capacity must be at least 1',
+      'number.max': 'Capacity cannot exceed 10',
+      'any.required': 'Capacity is required'
     }),
   
   basePrice: Joi.number()
@@ -155,10 +161,15 @@ export const updateRoomSchema = Joi.object({
       'number.positive': 'Area must be a positive number'
     }),
   
-  type: Joi.string()
-    .trim()
+  capacity: Joi.number()
+    .integer()
+    .min(1)
+    .max(10)
     .messages({
-      'string.empty': 'Room type cannot be empty'
+      'number.base': 'Capacity must be a number',
+      'number.integer': 'Capacity must be an integer',
+      'number.min': 'Capacity must be at least 1',
+      'number.max': 'Capacity cannot exceed 10'
     }),
   
   basePrice: Joi.number()

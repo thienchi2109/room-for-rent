@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Filter, Eye, Edit, Trash2, Plus, Calendar, Building, Users, FileText } from 'lucide-react'
+import { Search, Eye, Edit, Trash2, Plus, Calendar, Building, Users, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { ContractStatusBadge, ContractStatusDot } from './ContractStatusBadge'
+import { ContractStatusBadge } from './ContractStatusBadge'
 import { ContractDetailDialog } from './ContractDetailDialog'
 import { ContractForm } from './ContractForm'
 import { ContractDeleteDialog } from './ContractDeleteDialog'
@@ -41,7 +41,6 @@ export function ContractList({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingContract, setEditingContract] = useState<ContractWithDetails | null>(null)
   const [deletingContract, setDeletingContract] = useState<ContractWithDetails | null>(null)
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards')
 
   const { data: contractsData, isLoading, error } = useContracts(filters)
 

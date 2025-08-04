@@ -51,8 +51,7 @@ export default function RoomsPage() {
 
   // Filter rooms based on search, status, and floor
   const filteredRooms = rooms.filter((room: Room) => {
-    const matchesSearch = room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         room.type.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = room.number.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'ALL' || room.status === statusFilter
     const matchesFloor = floorFilter === 'ALL' || room.floor === floorFilter
     return matchesSearch && matchesStatus && matchesFloor

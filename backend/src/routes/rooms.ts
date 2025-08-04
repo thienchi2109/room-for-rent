@@ -17,7 +17,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       limit = '10',
       status,
       floor,
-      type,
+      capacity,
       search
     } = req.query
 
@@ -36,23 +36,14 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       where.floor = parseInt(floor as string, 10)
     }
 
-    if (type) {
-      where.type = {
-        contains: type as string,
-        mode: 'insensitive'
-      }
+    if (capacity) {
+      where.capacity = parseInt(capacity as string, 10)
     }
 
     if (search) {
       where.OR = [
         {
           number: {
-            contains: search as string,
-            mode: 'insensitive'
-          }
-        },
-        {
-          type: {
             contains: search as string,
             mode: 'insensitive'
           }
@@ -205,7 +196,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/', authenticate, validateRequest(createRoomSchema), async (req: Request, res: Response) => {
   try {
-    const { number, floor, area, type, basePrice, status = 'AVAILABLE' } = req.body
+    const { number, floor, area, capacity, basePrice, status = 'AVAILABLE' } = req.body
 
     // Check if room number already exists
     const existingRoom = await prisma.room.findUnique({
@@ -226,7 +217,7 @@ router.post('/', authenticate, validateRequest(createRoomSchema), async (req: Re
         number,
         floor,
         area,
-        type,
+        capacity,
         basePrice,
         status: status as RoomStatus
       }
@@ -255,7 +246,7 @@ router.post('/', authenticate, validateRequest(createRoomSchema), async (req: Re
 router.put('/:id', authenticate, validateRequest(updateRoomSchema), async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { number, floor, area, type, basePrice, status } = req.body
+    const { number, floor, area, capacity, basePrice, status } = req.body
 
     // Check if room exists
     const existingRoom = await prisma.room.findUnique({
@@ -292,7 +283,7 @@ router.put('/:id', authenticate, validateRequest(updateRoomSchema), async (req: 
         ...(number && { number }),
         ...(floor !== undefined && { floor }),
         ...(area !== undefined && { area }),
-        ...(type && { type }),
+        ...(capacity !== undefined && { capacity }),
         ...(basePrice !== undefined && { basePrice }),
         ...(status && { status: status as RoomStatus })
       }

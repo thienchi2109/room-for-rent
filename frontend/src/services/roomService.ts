@@ -20,7 +20,7 @@ export class RoomService {
     if (filters?.limit) params.append('limit', filters.limit.toString())
     if (filters?.status) params.append('status', filters.status)
     if (filters?.floor) params.append('floor', filters.floor.toString())
-    if (filters?.type) params.append('type', filters.type)
+    if (filters?.capacity) params.append('capacity', filters.capacity.toString())
     if (filters?.search) params.append('search', filters.search)
 
     const queryString = params.toString()

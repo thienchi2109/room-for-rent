@@ -9,8 +9,6 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { 
   useCreateContract, 
   useUpdateContract, 
@@ -24,7 +22,6 @@ import {
   Users, 
   FileText, 
   CheckCircle, 
-  Calendar as CalendarIcon,
   ArrowLeft,
   ArrowRight,
   Phone,
@@ -137,7 +134,7 @@ export function ContractForm({
     setWizardData(prev => ({ ...prev, primaryTenantId: tenantId }))
   }
 
-  const handleContractDetailsChange = (field: string, value: any) => {
+  const handleContractDetailsChange = (field: string, value: string | number | Date) => {
     setWizardData(prev => ({
       ...prev,
       contractDetails: {
@@ -208,9 +205,6 @@ export function ContractForm({
   const selectedRoom = availableRooms.find(room => room.id === wizardData.roomId)
   const selectedTenants = availableTenants.filter(tenant => 
     wizardData.tenantIds.includes(tenant.id)
-  )
-  const primaryTenant = selectedTenants.find(tenant => 
-    tenant.id === wizardData.primaryTenantId
   )
 
   const isLoading = createContract.isPending || updateContract.isPending
@@ -291,7 +285,7 @@ export function ContractForm({
                         <div className="space-y-1 text-sm text-gray-600">
                           <div>Tầng: {room.floor}</div>
                           <div>Diện tích: {room.area}m²</div>
-                          <div>Loại: {room.type}</div>
+                          <div>Sức chứa: {room.capacity} người</div>
                           <div className="font-medium text-gray-900">
                             Giá: {room.basePrice.toLocaleString('vi-VN')} ₫/tháng
                           </div>
@@ -551,8 +545,8 @@ export function ContractForm({
                           <span className="font-medium">{selectedRoom.area}m²</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Loại phòng:</span>
-                          <span className="font-medium">{selectedRoom.type}</span>
+                          <span className="text-gray-600">Sức chứa:</span>
+                          <span className="font-medium">{selectedRoom.capacity} người</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Giá thuê:</span>

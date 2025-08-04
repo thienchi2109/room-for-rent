@@ -54,7 +54,7 @@ export function RoomCard({
           </div>
           <div>
             <span className="text-gray-600">Sức chứa:</span>
-            <p className="font-medium">{room.type}</p>
+            <p className="font-medium">{room.capacity} người</p>
           </div>
           <div>
             <span className="text-gray-600">Đơn giá phòng:</span>
