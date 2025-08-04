@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useTenant, useTenantHistory } from '@/hooks/useTenants'
 import { TenantWithContracts } from '@/types/tenant'
 import { formatCurrency } from '@/lib/utils'
+import { ResidencyRecordList } from '@/components/residency-records'
 
 interface TenantDetailDialogProps {
   tenant: TenantWithContracts
@@ -303,36 +304,52 @@ export function TenantDetailDialog({
               )}
             </Card>
 
+            {/* Residency Records */}
+            <Card className="p-6">
+              <ResidencyRecordList
+                tenantId={tenantDetail.id}
+                tenantName={tenantDetail.fullName}
+                showCreateButton={true}
+              />
+            </Card>
+
             {/* Statistics */}
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Thống kê</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
                     {tenantDetail._count.contracts}
                   </p>
                   <p className="text-sm text-gray-600">Tổng hợp đồng</p>
                 </div>
-                
+
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">
                     {tenantDetail.contracts.filter(ct => ct.contract.status === 'ACTIVE').length}
                   </p>
                   <p className="text-sm text-gray-600">Đang thuê</p>
                 </div>
-                
+
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-600">
                     {tenantDetail.contracts.filter(ct => ct.contract.status === 'EXPIRED').length}
                   </p>
                   <p className="text-sm text-gray-600">Đã hết hạn</p>
                 </div>
-                
+
                 <div className="text-center">
                   <p className="text-2xl font-bold text-red-600">
                     {tenantDetail.contracts.filter(ct => ct.contract.status === 'TERMINATED').length}
                   </p>
                   <p className="text-sm text-gray-600">Đã kết thúc</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {tenantDetail._count.residencyRecords}
+                  </p>
+                  <p className="text-sm text-gray-600">Bản ghi tạm trú/vắng</p>
                 </div>
               </div>
             </Card>

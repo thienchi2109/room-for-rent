@@ -279,6 +279,204 @@ export const updateTenantSchema = Joi.object({
   'object.min': 'At least one field must be provided for update'
 })
 
+// Residency record creation validation schema
+export const createResidencyRecordSchema = Joi.object({
+  tenantId: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Tenant ID is required',
+      'any.required': 'Tenant ID is required'
+    }),
+
+  type: Joi.string()
+    .valid('TEMPORARY_RESIDENCE', 'TEMPORARY_ABSENCE')
+    .required()
+    .messages({
+      'any.only': 'Type must be either TEMPORARY_RESIDENCE or TEMPORARY_ABSENCE',
+      'any.required': 'Type is required'
+    }),
+
+  startDate: Joi.date()
+    .required()
+    .messages({
+      'date.base': 'Start date must be a valid date',
+      'any.required': 'Start date is required'
+    }),
+
+  endDate: Joi.date()
+    .greater(Joi.ref('startDate'))
+    .allow(null)
+    .messages({
+      'date.base': 'End date must be a valid date',
+      'date.greater': 'End date must be after start date'
+    }),
+
+  notes: Joi.string()
+    .max(500)
+    .allow('')
+    .trim()
+    .messages({
+      'string.max': 'Notes must not exceed 500 characters'
+    })
+})
+
+// Residency record update validation schema (all fields optional except tenantId)
+export const updateResidencyRecordSchema = Joi.object({
+  type: Joi.string()
+    .valid('TEMPORARY_RESIDENCE', 'TEMPORARY_ABSENCE')
+    .messages({
+      'any.only': 'Type must be either TEMPORARY_RESIDENCE or TEMPORARY_ABSENCE'
+    }),
+
+  startDate: Joi.date()
+    .messages({
+      'date.base': 'Start date must be a valid date'
+    }),
+
+  endDate: Joi.date()
+    .greater(Joi.ref('startDate'))
+    .allow(null)
+    .messages({
+      'date.base': 'End date must be a valid date',
+      'date.greater': 'End date must be after start date'
+    }),
+
+  notes: Joi.string()
+    .max(500)
+    .allow('')
+    .trim()
+    .messages({
+      'string.max': 'Notes must not exceed 500 characters'
+    })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+})
+
+// Contract creation validation schema
+export const createContractSchema = Joi.object({
+  contractNumber: Joi.string()
+    .trim()
+    .allow('')
+    .messages({
+      'string.empty': 'Contract number cannot be empty if provided'
+    }),
+
+  roomId: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Room ID is required',
+      'any.required': 'Room ID is required'
+    }),
+
+  startDate: Joi.date()
+    .required()
+    .messages({
+      'date.base': 'Start date must be a valid date',
+      'any.required': 'Start date is required'
+    }),
+
+  endDate: Joi.date()
+    .greater(Joi.ref('startDate'))
+    .required()
+    .messages({
+      'date.base': 'End date must be a valid date',
+      'date.greater': 'End date must be after start date',
+      'any.required': 'End date is required'
+    }),
+
+  deposit: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      'number.base': 'Deposit must be a number',
+      'number.positive': 'Deposit must be a positive number',
+      'any.required': 'Deposit is required'
+    }),
+
+  status: Joi.string()
+    .valid('ACTIVE', 'EXPIRED', 'TERMINATED')
+    .default('ACTIVE')
+    .messages({
+      'any.only': 'Status must be one of: ACTIVE, EXPIRED, TERMINATED'
+    }),
+
+  tenantIds: Joi.array()
+    .items(Joi.string().trim())
+    .min(1)
+    .required()
+    .messages({
+      'array.base': 'Tenant IDs must be an array',
+      'array.min': 'At least one tenant must be specified',
+      'any.required': 'Tenant IDs are required'
+    }),
+
+  primaryTenantId: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Primary tenant ID is required',
+      'any.required': 'Primary tenant ID is required'
+    })
+})
+
+// Contract update validation schema (all fields optional)
+export const updateContractSchema = Joi.object({
+  contractNumber: Joi.string()
+    .trim()
+    .messages({
+      'string.empty': 'Contract number cannot be empty'
+    }),
+
+  roomId: Joi.string()
+    .trim()
+    .messages({
+      'string.empty': 'Room ID cannot be empty'
+    }),
+
+  startDate: Joi.date()
+    .messages({
+      'date.base': 'Start date must be a valid date'
+    }),
+
+  endDate: Joi.date()
+    .greater(Joi.ref('startDate'))
+    .messages({
+      'date.base': 'End date must be a valid date',
+      'date.greater': 'End date must be after start date'
+    }),
+
+  deposit: Joi.number()
+    .positive()
+    .messages({
+      'number.base': 'Deposit must be a number',
+      'number.positive': 'Deposit must be a positive number'
+    }),
+
+  status: Joi.string()
+    .valid('ACTIVE', 'EXPIRED', 'TERMINATED')
+    .messages({
+      'any.only': 'Status must be one of: ACTIVE, EXPIRED, TERMINATED'
+    }),
+
+  tenantIds: Joi.array()
+    .items(Joi.string().trim())
+    .min(1)
+    .messages({
+      'array.base': 'Tenant IDs must be an array',
+      'array.min': 'At least one tenant must be specified'
+    }),
+
+  primaryTenantId: Joi.string()
+    .trim()
+    .messages({
+      'string.empty': 'Primary tenant ID cannot be empty'
+    })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+})
+
 // Validation middleware factory
 export function validateRequest(schema: Joi.ObjectSchema) {
   return (req: any, res: any, next: any) => {

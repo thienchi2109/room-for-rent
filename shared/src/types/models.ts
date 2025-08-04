@@ -98,6 +98,16 @@ export interface MeterReading {
   verifiedAt?: Date
 }
 
+export interface ResidencyRecord {
+  id: string
+  tenantId: string
+  type: ResidencyType
+  startDate: Date
+  endDate?: Date
+  notes?: string
+  createdAt: Date
+}
+
 export interface User {
   id: string
   username: string

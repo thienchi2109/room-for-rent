@@ -90,14 +90,14 @@
     - Improved dialog padding and spacing for better UX
     - _Requirements: 2.1, 2.2, 2.3, 2.5, 2.6_
 
-  - [ ] 5.3 Implement residency record management
+  - [x] 5.3 Implement residency record management
     - Create API endpoints for temporary residence/absence records
     - Build UI forms for residency record management
     - Add residency history display in tenant profile
     - _Requirements: 2.4_
 
 - [ ] 6. Implement contract management system
-  - [ ] 6.1 Create contract CRUD API endpoints
+  - [x] 6.1 Create contract CRUD API endpoints
     - Implement GET /api/contracts with filtering and pagination
     - Implement POST /api/contracts for creating new contracts
     - Implement PUT /api/contracts/:id for updating contracts

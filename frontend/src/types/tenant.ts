@@ -1,4 +1,5 @@
 // Tenant-specific types for the frontend
+import { ResidencyRecord } from './residencyRecord'
 
 export interface TenantWithContracts {
   id: string
@@ -10,6 +11,7 @@ export interface TenantWithContracts {
   createdAt: Date
   updatedAt: Date
   contracts: ContractTenant[]
+  residencyRecords?: ResidencyRecord[]
   _count: {
     contracts: number
     residencyRecords: number

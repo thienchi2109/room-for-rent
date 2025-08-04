@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { RoomCard } from '@/components/rooms/RoomCard'
 import { RoomTable } from '@/components/rooms/RoomTable'
 import { RoomForm } from '@/components/rooms/RoomForm'
@@ -151,28 +158,30 @@ export default function RoomsPage() {
             />
           </div>
           
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as RoomStatus | 'ALL')}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="AVAILABLE">Có sẵn</option>
-            <option value="OCCUPIED">Đã cho thuê</option>
-            <option value="MAINTENANCE">Bảo trì</option>
-            <option value="RESERVED">Đã đặt trước</option>
-          </select>
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as RoomStatus | 'ALL')}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Lọc theo trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+              <SelectItem value="AVAILABLE">Có sẵn</SelectItem>
+              <SelectItem value="OCCUPIED">Đã cho thuê</SelectItem>
+              <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
+              <SelectItem value="RESERVED">Đã đặt trước</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={floorFilter}
-            onChange={(e) => setFloorFilter(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white"
-          >
-            <option value="ALL">Tất cả tầng</option>
-            {floors.map((floor) => (
-              <option key={floor} value={floor}>Tầng {floor}</option>
-            ))}
-          </select>
+          <Select value={String(floorFilter)} onValueChange={(value) => setFloorFilter(value === 'ALL' ? 'ALL' : Number(value))}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Lọc theo tầng" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Tất cả tầng</SelectItem>
+              {floors.map((floor) => (
+                <SelectItem key={floor} value={String(floor)}>Tầng {floor}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex gap-2">

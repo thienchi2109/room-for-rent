@@ -6,6 +6,8 @@ import dotenv from 'dotenv'
 import authRoutes from './routes/auth'
 import roomRoutes from './routes/rooms'
 import tenantRoutes from './routes/tenants'
+import contractRoutes from './routes/contracts'
+import residencyRecordRoutes from './routes/residencyRecords'
 import dashboardRoutes from './routes/dashboard'
 
 // Load environment variables
@@ -37,6 +39,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/rooms', roomRoutes)
 app.use('/api/tenants', tenantRoutes)
+app.use('/api/contracts', contractRoutes)
+app.use('/api/residency-records', residencyRecordRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 
 app.get('/api', (req, res) => {
