@@ -20,6 +20,7 @@ export class TenantService {
     if (filters.search) params.append('search', filters.search)
     if (filters.sortBy) params.append('sortBy', filters.sortBy)
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder)
+    if (filters.roomNumber) params.append('roomNumber', filters.roomNumber)
 
     const queryString = params.toString()
     const endpoint = `/api/tenants${queryString ? `?${queryString}` : ''}`

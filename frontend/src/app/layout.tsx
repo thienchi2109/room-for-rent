@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         <Providers>
           <Navigation />
-          <main className="min-h-screen bg-gray-50">
+          <main className="min-h-screen bg-gray-50 pb-16 xl:pb-0">
             {children}
           </main>
         </Providers>

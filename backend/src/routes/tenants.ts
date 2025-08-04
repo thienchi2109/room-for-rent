@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { prisma } from '../lib/database'
 import { authenticate } from '../middleware/auth'
 import { validateRequest, createTenantSchema, updateTenantSchema } from '../lib/validation'
+import { Prisma } from '@prisma/client'
 
 const router = Router()
 
@@ -16,7 +17,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       limit = '20',
       search = '',
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      roomNumber = ''
     } = req.query
 
     const pageNum = Math.max(1, parseInt(page as string))
@@ -24,16 +26,30 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     const skip = (pageNum - 1) * limitNum
 
     // Build search conditions
-    const searchConditions = search
-      ? {
-          OR: [
-            { fullName: { contains: search as string, mode: 'insensitive' as const } },
-            { phone: { contains: search as string, mode: 'insensitive' as const } },
-            { idCard: { contains: search as string, mode: 'insensitive' as const } },
-            { hometown: { contains: search as string, mode: 'insensitive' as const } }
-          ]
-        }
-      : {}
+    const where: Prisma.TenantWhereInput = {}
+
+    if (search) {
+      where.OR = [
+        { fullName: { contains: search as string, mode: 'insensitive' } },
+        { phone: { contains: search as string, mode: 'insensitive' } },
+        { idCard: { contains: search as string, mode: 'insensitive' } },
+      ]
+    }
+
+    if (roomNumber) {
+      where.contracts = {
+        some: {
+          contract: {
+            room: {
+              number: {
+                contains: roomNumber as string,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+      }
+    }
 
     // Build sort conditions
     const orderBy = {
@@ -43,7 +59,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     // Get tenants with pagination
     const [tenants, totalCount] = await Promise.all([
       prisma.tenant.findMany({
-        where: searchConditions,
+        where,
         orderBy,
         skip,
         take: limitNum,
@@ -78,7 +94,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         }
       }),
       prisma.tenant.count({
-        where: searchConditions
+        where
       })
     ])
 

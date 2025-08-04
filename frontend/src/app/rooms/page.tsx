@@ -134,7 +134,7 @@ export default function RoomsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">QUẢN LÝ CÁC PHÒNG HIỆN CÓ</h1>
+          <h1 className="text-2xl font-bold text-gray-900">QUẢN LÝ CÁC PHÒNG HIỆN CÓ</h1>
           <p className="text-gray-600 mt-1">
             Quản lý thông tin và trạng thái các phòng cho thuê
           </p>

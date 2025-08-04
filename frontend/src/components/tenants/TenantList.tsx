@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Filter, Eye, Edit, Trash2, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +20,7 @@ interface TenantListProps {
 
 export function TenantList({ filters, onFiltersChange }: TenantListProps) {
   const [searchInput, setSearchInput] = useState(filters.search || '')
+  const [roomNumberInput, setRoomNumberInput] = useState(filters.roomNumber || '')
   const [selectedTenant, setSelectedTenant] = useState<TenantWithContracts | null>(null)
   const [editingTenant, setEditingTenant] = useState<TenantWithContracts | null>(null)
   const [deletingTenant, setDeletingTenant] = useState<TenantWithContracts | null>(null)
@@ -29,6 +30,16 @@ export function TenantList({ filters, onFiltersChange }: TenantListProps) {
 
   // Fetch tenants
   const { data, isLoading, error, refetch } = useTenants(filters)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      onFiltersChange({ roomNumber: roomNumberInput, page: 1 })
+    }, 250)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [roomNumberInput, onFiltersChange])
 
   const handleSearch = () => {
     onFiltersChange({ search: searchInput, page: 1 })
@@ -89,7 +100,7 @@ export function TenantList({ filters, onFiltersChange }: TenantListProps) {
     <div className="space-y-6">
       {/* Search and Filters */}
       <Card className="p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex-1 flex gap-2">
             <Input
               placeholder="Tìm kiếm theo tên, CCCD, số điện thoại..."
@@ -102,12 +113,13 @@ export function TenantList({ filters, onFiltersChange }: TenantListProps) {
               <Search className="w-4 h-4" />
             </Button>
           </div>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Bộ lọc
-            </Button>
+          <div className="flex-1 flex gap-2">
+            <Input
+              placeholder="Tìm theo số phòng..."
+              value={roomNumberInput}
+              onChange={(e) => setRoomNumberInput(e.target.value)}
+              className="flex-1"
+            />
           </div>
         </div>
       </Card>
@@ -195,14 +207,15 @@ export function TenantList({ filters, onFiltersChange }: TenantListProps) {
       {tenants.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">
-            {filters.search ? 'Không tìm thấy khách thuê nào' : 'Chưa có khách thuê nào'}
+            {filters.search || filters.roomNumber ? 'Không tìm thấy khách thuê nào' : 'Chưa có khách thuê nào'}
           </p>
-          {filters.search && (
+          {(filters.search || filters.roomNumber) && (
             <Button 
               variant="outline" 
               onClick={() => {
                 setSearchInput('')
-                onFiltersChange({ search: '', page: 1 })
+                setRoomNumberInput('')
+                onFiltersChange({ search: '', roomNumber: '', page: 1 })
               }}
             >
               Xóa bộ lọc

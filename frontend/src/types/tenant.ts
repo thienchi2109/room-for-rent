@@ -75,6 +75,7 @@ export interface TenantFilters {
   search?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  roomNumber?: string
 }
 
 export interface TenantListResponse {

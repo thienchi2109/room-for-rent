@@ -71,7 +71,7 @@
     - Add floor-based filtering and floor view
     - _Requirements: 1.6, 1.7_
 
-- [ ] 5. Implement tenant management system
+- [x] 5. Implement tenant management system
   - [x] 5.1 Create tenant CRUD API endpoints
 
 
@@ -104,7 +104,7 @@
     - Add contract validation logic (room availability, date validation)
     - _Requirements: 3.1, 3.2, 3.5, 3.6_
 
-  - [ ] 6.2 Build contract management UI components
+  - [x] 6.2 Build contract management UI components
     - Create contract list view with status filtering
     - Implement multi-step contract creation form
     - Add contract editing and viewing interfaces

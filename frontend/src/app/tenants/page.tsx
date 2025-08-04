@@ -12,7 +12,7 @@ export default function TenantsPage() {
   const [filters, setFilters] = useState<TenantFilters>({
     page: 1,
     limit: 20,
-    search: '',
+    roomNumber: '',
     sortBy: 'createdAt',
     sortOrder: 'desc'
   })
@@ -26,7 +26,7 @@ export default function TenantsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Khách thuê</h1>
+          <h1 className="text-2xl font-bold text-gray-900">QUẢN LÝ KHÁCH THUÊ</h1>
           <p className="text-gray-600 mt-1">Quản lý thông tin khách thuê và lịch sử thuê phòng</p>
         </div>
         
