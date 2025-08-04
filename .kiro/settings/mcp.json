@@ -14,7 +14,18 @@
       ],
       "disabled": false,
       "autoApprove": [
-        "get_symbols_overview"
+        "get_symbols_overview",
+        "initial_instructions",
+        "check_onboarding_performed",
+        "onboarding",
+        "find_symbol",
+        "write_memory",
+        "think_about_task_adherence",
+        "replace_regex",
+        "search_for_pattern",
+        "think_about_whether_you_are_done",
+        "summarize_changes",
+        "get_current_config"
       ]
     }
   }

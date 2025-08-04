@@ -161,7 +161,7 @@ export function ResidencyRecordDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] p-6">
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Thêm bản ghi tạm trú/tạm vắng' : 'Sửa bản ghi tạm trú/tạm vắng'}

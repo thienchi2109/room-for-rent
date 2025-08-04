@@ -8,13 +8,15 @@ import { TenantDialog } from '@/components/tenants/TenantDialog'
 import { TenantFilters } from '@/types/tenant'
 
 export default function TenantsPage() {
+  const [view, setView] = useState<'grid' | 'table'>('grid')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [filters, setFilters] = useState<TenantFilters>({
     page: 1,
     limit: 20,
     roomNumber: '',
     sortBy: 'createdAt',
-    sortOrder: 'desc'
+    sortOrder: 'desc',
+    floor: undefined
   })
 
   const handleFiltersChange = (newFilters: Partial<TenantFilters>) => {
@@ -22,25 +24,44 @@ export default function TenantsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">QUẢN LÝ KHÁCH THUÊ</h1>
-          <p className="text-gray-600 mt-1">Quản lý thông tin khách thuê và lịch sử thuê phòng</p>
+          <p className="text-gray-600 mt-1">
+            Quản lý thông tin khách thuê và lịch sử thuê phòng
+          </p>
         </div>
-        
-        <Button 
-          onClick={() => setIsCreateDialogOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
           Thêm khách thuê
         </Button>
       </div>
 
+      {/* View Toggle */}
+      <div className="flex justify-end">
+        <div className="flex gap-2">
+          <Button
+            variant={view === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setView('grid')}
+          >
+            Lưới
+          </Button>
+          <Button
+            variant={view === 'table' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setView('table')}
+          >
+            Bảng
+          </Button>
+        </div>
+      </div>
+
       {/* Tenant List */}
-      <TenantList 
+      <TenantList
+        view={view}
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />

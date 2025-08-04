@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, MapPin, Phone, CreditCard, Building, Clock, DollarSign } from 'lucide-react'
+import { Calendar, MapPin, Phone, CreditCard, Building, Clock, DollarSign, Edit, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -16,14 +16,23 @@ interface TenantDetailDialogProps {
   tenant: TenantWithContracts
   open: boolean
   onOpenChange: (open: boolean) => void
+  onEdit?: (tenant: TenantWithContracts) => void
+  onDelete?: (tenant: TenantWithContracts) => void
 }
 
 export function TenantDetailDialog({ 
   tenant, 
   open, 
-  onOpenChange 
+  onOpenChange,
+  onEdit,
+  onDelete
 }: TenantDetailDialogProps) {
   const [historyPage, setHistoryPage] = useState(1)
+
+  // Early return if tenant is not provided
+  if (!tenant) {
+    return null
+  }
 
   // Fetch detailed tenant info
   const { data: detailData, isLoading: isDetailLoading } = useTenant(tenant.id, open)
@@ -37,6 +46,17 @@ export function TenantDetailDialog({
   )
 
   const tenantDetail = detailData?.data || tenant
+  
+  // Ensure contracts is always an array - handle all edge cases
+  const safeContracts = Array.isArray(tenantDetail?.contracts) 
+    ? tenantDetail.contracts.filter(ct => ct && ct.contract) // Filter out invalid contracts
+    : Array.isArray(tenant?.contracts) 
+    ? tenant.contracts.filter(ct => ct && ct.contract) // Filter out invalid contracts
+    : []
+    
+  // Ensure _count is always available
+  const safeCount = tenantDetail?._count || tenant?._count || { contracts: 0, residencyRecords: 0 }
+  
   const history = historyData?.data.history || []
   const historyPagination = historyData?.pagination
 
@@ -60,7 +80,7 @@ export function TenantDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle>Thông tin chi tiết khách thuê</DialogTitle>
         </DialogHeader>
@@ -79,7 +99,7 @@ export function TenantDetailDialog({
                   <CreditCard className="w-5 h-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-600">Họ và tên</p>
-                    <p className="font-medium">{tenantDetail.fullName}</p>
+                    <p className="font-medium">{tenantDetail?.fullName || 'N/A'}</p>
                   </div>
                 </div>
                 
@@ -88,7 +108,7 @@ export function TenantDetailDialog({
                   <div>
                     <p className="text-sm text-gray-600">Ngày sinh</p>
                     <p className="font-medium">
-                      {new Date(tenantDetail.dateOfBirth).toLocaleDateString('vi-VN')}
+                      {tenantDetail?.dateOfBirth ? new Date(tenantDetail.dateOfBirth).toLocaleDateString('vi-VN') : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -97,7 +117,7 @@ export function TenantDetailDialog({
                   <CreditCard className="w-5 h-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-600">Số CCCD</p>
-                    <p className="font-medium">{tenantDetail.idCard}</p>
+                    <p className="font-medium">{tenantDetail?.idCard || 'N/A'}</p>
                   </div>
                 </div>
                 
@@ -105,7 +125,7 @@ export function TenantDetailDialog({
                   <Phone className="w-5 h-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-600">Số điện thoại</p>
-                    <p className="font-medium">{tenantDetail.phone}</p>
+                    <p className="font-medium">{tenantDetail?.phone || 'N/A'}</p>
                   </div>
                 </div>
                 
@@ -113,18 +133,21 @@ export function TenantDetailDialog({
                   <MapPin className="w-5 h-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-600">Quê quán</p>
-                    <p className="font-medium">{tenantDetail.hometown}</p>
+                    <p className="font-medium">{tenantDetail?.hometown || 'N/A'}</p>
                   </div>
                 </div>
               </div>
             </Card>
 
             {/* Current Contract */}
-            {tenantDetail.contracts.find(ct => ct.contract.status === 'ACTIVE') && (
+            {safeContracts.find(ct => ct.contract.status === 'ACTIVE') && (
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Hợp đồng hiện tại</h3>
                 {(() => {
-                  const activeContract = tenantDetail.contracts.find(ct => ct.contract.status === 'ACTIVE')!
+                  const activeContract = safeContracts.find(ct => ct.contract.status === 'ACTIVE')
+                  
+                  if (!activeContract) return null
+                  
                   const statusBadge = getStatusBadge(activeContract.contract.status)
                   
                   return (
@@ -307,8 +330,8 @@ export function TenantDetailDialog({
             {/* Residency Records */}
             <Card className="p-6">
               <ResidencyRecordList
-                tenantId={tenantDetail.id}
-                tenantName={tenantDetail.fullName}
+                tenantId={tenantDetail?.id || tenant?.id || ''}
+                tenantName={tenantDetail?.fullName || tenant?.fullName || 'N/A'}
                 showCreateButton={true}
               />
             </Card>
@@ -319,35 +342,35 @@ export function TenantDetailDialog({
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
-                    {tenantDetail._count.contracts}
+                    {safeCount.contracts}
                   </p>
                   <p className="text-sm text-gray-600">Tổng hợp đồng</p>
                 </div>
 
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-600">
-                    {tenantDetail.contracts.filter(ct => ct.contract.status === 'ACTIVE').length}
+                    {safeContracts.filter(ct => ct.contract.status === 'ACTIVE').length}
                   </p>
                   <p className="text-sm text-gray-600">Đang thuê</p>
                 </div>
 
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-600">
-                    {tenantDetail.contracts.filter(ct => ct.contract.status === 'EXPIRED').length}
+                    {safeContracts.filter(ct => ct.contract.status === 'EXPIRED').length}
                   </p>
                   <p className="text-sm text-gray-600">Đã hết hạn</p>
                 </div>
 
                 <div className="text-center">
                   <p className="text-2xl font-bold text-red-600">
-                    {tenantDetail.contracts.filter(ct => ct.contract.status === 'TERMINATED').length}
+                    {safeContracts.filter(ct => ct.contract.status === 'TERMINATED').length}
                   </p>
                   <p className="text-sm text-gray-600">Đã kết thúc</p>
                 </div>
 
                 <div className="text-center">
                   <p className="text-2xl font-bold text-purple-600">
-                    {tenantDetail._count.residencyRecords}
+                    {safeCount.residencyRecords}
                   </p>
                   <p className="text-sm text-gray-600">Bản ghi tạm trú/vắng</p>
                 </div>
@@ -355,6 +378,35 @@ export function TenantDetailDialog({
             </Card>
           </div>
         )}
+        
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-6 border-t">
+          {onEdit && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false)
+                onEdit(tenant)
+              }}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Chỉnh sửa
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false)
+                onDelete(tenant)
+              }}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Xóa
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )
