@@ -28,6 +28,8 @@ export default function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<RoomStatus | 'ALL'>('ALL')
   const [floorFilter, setFloorFilter] = useState<number | 'ALL'>('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [statusRoom, setStatusRoom] = useState<Room | null>(null)
@@ -35,7 +37,7 @@ export default function RoomsPage() {
   const [detailsRoom, setDetailsRoom] = useState<Room | null>(null)
   const [addTenantRoom, setAddTenantRoom] = useState<Room | null>(null)
 
-  const { data: roomsResponse, isLoading, error } = useRooms()
+  const { data: roomsResponse, isLoading, error } = useRooms({ limit: 100 })
   const createRoomMutation = useCreateRoom()
   const updateRoomMutation = useUpdateRoom()
   const updateStatusMutation = useUpdateRoomStatus()
@@ -55,6 +57,17 @@ export default function RoomsPage() {
     const matchesFloor = floorFilter === 'ALL' || room.floor === floorFilter
     return matchesSearch && matchesStatus && matchesFloor
   })
+
+  // Pagination for table view
+  const totalPages = Math.ceil(filteredRooms.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedRooms = view === 'table' ? filteredRooms.slice(startIndex, endIndex) : filteredRooms
+
+  // Reset to first page when filters change
+  const resetPagination = () => {
+    setCurrentPage(1)
+  }
 
   // Group rooms by floor for floor view
   const roomsByFloor = floors.reduce((acc, floor) => {
@@ -146,19 +159,25 @@ export default function RoomsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Tìm kiếm theo số phòng hoặc loại phòng..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                resetPagination()
+              }}
               className="pl-10"
             />
           </div>
-          
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as RoomStatus | 'ALL')}>
+
+          <Select value={statusFilter} onValueChange={(value) => {
+            setStatusFilter(value as RoomStatus | 'ALL')
+            resetPagination()
+          }}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Lọc theo trạng thái" />
             </SelectTrigger>
@@ -170,20 +189,38 @@ export default function RoomsPage() {
               <SelectItem value="RESERVED">Đã đặt trước</SelectItem>
             </SelectContent>
           </Select>
-
-          <Select value={String(floorFilter)} onValueChange={(value) => setFloorFilter(value === 'ALL' ? 'ALL' : Number(value))}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Lọc theo tầng" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Tất cả tầng</SelectItem>
-              {floors.map((floor) => (
-                <SelectItem key={floor} value={String(floor)}>Tầng {floor}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
+        {/* Floor Filter Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={floorFilter === 'ALL' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setFloorFilter('ALL')
+              resetPagination()
+            }}
+          >
+            Tất cả tầng
+          </Button>
+          {floors.map((floor) => (
+            <Button
+              key={floor}
+              variant={floorFilter === floor ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setFloorFilter(floor)
+                resetPagination()
+              }}
+            >
+              Tầng {floor}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="flex justify-end">
         <div className="flex gap-2">
           <Button
             variant={view === 'grid' ? 'default' : 'outline'}
@@ -241,14 +278,59 @@ export default function RoomsPage() {
           ))}
         </div>
       ) : view === 'table' ? (
-        <RoomTable
-          rooms={filteredRooms}
-          onView={setDetailsRoom}
-          onEdit={setEditingRoom}
-          onDelete={setDeletingRoom}
-          onStatusChange={setStatusRoom}
-          onAddTenant={handleAddTenant}
-        />
+        <div className="space-y-4">
+          <RoomTable
+            rooms={paginatedRooms}
+            onView={setDetailsRoom}
+            onEdit={setEditingRoom}
+            onDelete={setDeletingRoom}
+            onStatusChange={setStatusRoom}
+            onAddTenant={handleAddTenant}
+          />
+
+          {/* Pagination for Table View */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Hiển thị {startIndex + 1} - {Math.min(endIndex, filteredRooms.length)} trong tổng số {filteredRooms.length} phòng
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  Trước
+                </Button>
+
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  Sau
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
         // Floor view
         <div className="space-y-8">
