@@ -25,7 +25,9 @@
         "search_for_pattern",
         "think_about_whether_you_are_done",
         "summarize_changes",
-        "get_current_config"
+        "get_current_config",
+        "think_about_collected_information",
+        "read_memory"
       ]
     }
   }

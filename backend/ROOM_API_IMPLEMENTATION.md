@@ -28,8 +28,8 @@
 - **Purpose**: Lấy danh sách phòng với pagination và filtering
 - **Features**:
   - Pagination (page, limit)
-  - Filter by status, floor, type
-  - Search by room number or type
+  - Filter by status, floor, capacity
+  - Search by room number
   - Include related contracts and counts
 - **Authentication**: Required
 
@@ -78,7 +78,7 @@
 - `number`: Required, unique string
 - `floor`: Required integer >= 1
 - `area`: Required positive number
-- `type`: Required string
+- `capacity`: Required integer (1-10)
 - `basePrice`: Required positive number
 - `status`: Optional, enum (AVAILABLE, OCCUPIED, RESERVED, MAINTENANCE)
 
@@ -128,5 +128,5 @@ Bước tiếp theo trong implementation plan:
 
 - Room status được quản lý thông qua enum: AVAILABLE, OCCUPIED, RESERVED, MAINTENANCE
 - Pagination default: page=1, limit=10
-- Search functionality support room number và type
+- Search functionality support room number
 - Soft dependencies: Room không thể xóa nếu có active contracts hoặc unpaid bills

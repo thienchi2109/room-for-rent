@@ -72,9 +72,9 @@ describe('Room API Endpoints', () => {
       // Create test rooms
       await prisma.room.createMany({
         data: [
-          { number: 'TEST101', floor: 1, area: 25, type: 'Single', basePrice: 500000 },
-          { number: 'TEST102', floor: 1, area: 30, type: 'Double', basePrice: 700000 },
-          { number: 'TEST201', floor: 2, area: 25, type: 'Single', basePrice: 550000 }
+          { number: 'TEST101', floor: 1, area: 25, capacity: 1, basePrice: 500000 },
+          { number: 'TEST102', floor: 1, area: 30, capacity: 2, basePrice: 700000 },
+          { number: 'TEST201', floor: 2, area: 25, capacity: 1, basePrice: 550000 }
         ]
       })
 
@@ -92,8 +92,8 @@ describe('Room API Endpoints', () => {
       // Create test rooms
       await prisma.room.createMany({
         data: [
-          { number: 'TEST101', floor: 1, area: 25, type: 'Single', basePrice: 500000, status: 'AVAILABLE' },
-          { number: 'TEST102', floor: 1, area: 30, type: 'Double', basePrice: 700000, status: 'OCCUPIED' }
+          { number: 'TEST101', floor: 1, area: 25, capacity: 1, basePrice: 500000, status: 'AVAILABLE' },
+          { number: 'TEST102', floor: 1, area: 30, capacity: 2, basePrice: 700000, status: 'OCCUPIED' }
         ]
       })
 
@@ -120,7 +120,7 @@ describe('Room API Endpoints', () => {
           number: 'TEST101',
           floor: 1,
           area: 25,
-          type: 'Single',
+          capacity: 1,
           basePrice: 500000
         }
       })
@@ -154,7 +154,7 @@ describe('Room API Endpoints', () => {
       number: 'TEST201',
       floor: 2,
       area: 30,
-      type: 'Double',
+      capacity: 2,
       basePrice: 650000
     }
 
@@ -206,7 +206,7 @@ describe('Room API Endpoints', () => {
         number: 'TEST301',
         floor: 'not-a-number', // Should be number
         area: 30,
-        type: 'Single',
+        capacity: 1,
         basePrice: 500000
       }
 
@@ -225,7 +225,7 @@ describe('Room API Endpoints', () => {
           number: 'TEST101',
           floor: 1,
           area: 25,
-          type: 'Single',
+          capacity: 1,
           basePrice: 500000
         }
       })
@@ -235,7 +235,7 @@ describe('Room API Endpoints', () => {
     it('should update room details', async () => {
       const updateData = {
         basePrice: 600000,
-        type: 'Single Deluxe'
+        capacity: 2
       }
 
       const response = await request(app)
@@ -246,7 +246,7 @@ describe('Room API Endpoints', () => {
 
       expect(response.body).toHaveProperty('message', 'Room updated successfully')
       expect(response.body.data).toHaveProperty('basePrice', '600000')
-      expect(response.body.data).toHaveProperty('type', 'Single Deluxe')
+      expect(response.body.data).toHaveProperty('capacity', 2)
     })
 
     it('should prevent duplicate room numbers', async () => {
@@ -256,7 +256,7 @@ describe('Room API Endpoints', () => {
           number: 'TEST102',
           floor: 1,
           area: 25,
-          type: 'Single',
+          capacity: 1,
           basePrice: 500000
         }
       })
@@ -286,7 +286,7 @@ describe('Room API Endpoints', () => {
           number: 'TEST101',
           floor: 1,
           area: 25,
-          type: 'Single',
+          capacity: 1,
           basePrice: 500000
         }
       })
@@ -366,7 +366,7 @@ describe('Room API Endpoints', () => {
           number: 'TEST101',
           floor: 1,
           area: 25,
-          type: 'Single',
+          capacity: 1,
           basePrice: 500000,
           status: 'AVAILABLE'
         }

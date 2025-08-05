@@ -488,6 +488,17 @@ export const updateContractSchema = Joi.object({
   'object.min': 'At least one field must be provided for update'
 })
 
+// Contract check-out validation schema
+export const checkoutContractSchema = Joi.object({
+  reason: Joi.string()
+    .max(500)
+    .allow('')
+    .trim()
+    .messages({
+      'string.max': 'Reason must not exceed 500 characters'
+    })
+})
+
 // Validation middleware factory
 export function validateRequest(schema: Joi.ObjectSchema) {
   return (req: any, res: any, next: any) => {

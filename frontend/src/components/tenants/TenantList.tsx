@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Search, Phone, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { Search, Phone, MapPin, Grid3X3, Table } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -12,19 +12,28 @@ import { TenantDetailDialog } from './TenantDetailDialog'
 import { TenantDeleteDialog } from './TenantDeleteDialog'
 import { TenantTable } from './TenantTable'
 import { useTenants } from '@/hooks/useTenants'
-import { TenantFilters, TenantWithContracts } from '@/types/tenant'
+import { useRooms } from '@/hooks/useRooms'
+import { TenantWithContracts } from '@/types/tenant'
 
 interface TenantListProps {
   view: 'grid' | 'table'
-  filters: TenantFilters
-  onFiltersChange: (filters: Partial<TenantFilters>) => void
+  setView: (view: 'grid' | 'table') => void
 }
 
-export function TenantList({ view, filters, onFiltersChange }: TenantListProps) {
-  const [searchInput, setSearchInput] = useState(filters.search || '')
-  const [roomNumberInput, setRoomNumberInput] = useState(filters.roomNumber || '')
-  const [floorFilter, setFloorFilter] = useState<number | 'ALL'>(filters.floor || 'ALL')
-  
+export function TenantList({ view, setView }: TenantListProps) {
+  // Helper function to get active contract - defined inside component
+  const getActiveContract = (tenant: TenantWithContracts) => {
+    return tenant.contracts?.find(contractTenant =>
+      contractTenant.contract.status === 'ACTIVE'
+    )
+  }
+  // Client-side filtering states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [roomNumberFilter, setRoomNumberFilter] = useState('')
+  const [floorFilter, setFloorFilter] = useState<number | 'ALL'>('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+
   const [selectedTenant, setSelectedTenant] = useState<TenantWithContracts | null>(null)
   const [editingTenant, setEditingTenant] = useState<TenantWithContracts | null>(null)
   const [deletingTenant, setDeletingTenant] = useState<TenantWithContracts | null>(null)
@@ -32,37 +41,48 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  // Sync local state with props when filters change
-  useEffect(() => {
-    setSearchInput(filters.search || '')
-    setRoomNumberInput(filters.roomNumber || '')
-    setFloorFilter(filters.floor || 'ALL')
-  }, [filters.search, filters.roomNumber, filters.floor])
+  // Fetch all tenants with high limit for client-side filtering
+  const { data, isLoading, error, refetch } = useTenants({ limit: 100 })
 
-  // Fetch tenants
-  const { data, isLoading, error, refetch } = useTenants(filters)
+  // Fetch rooms for floor filter options
+  const { data: roomsData } = useRooms({ limit: 100 })
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      // Only update if roomNumberInput actually changed
-      if (roomNumberInput !== filters.roomNumber) {
-        onFiltersChange({ roomNumber: roomNumberInput, page: 1 })
-      }
-    }, 250)
+  // Extract tenants array from response
+  const tenants = Array.isArray(data) ? data : data?.data || []
+  const rooms = Array.isArray(roomsData) ? roomsData : roomsData?.data || []
 
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [roomNumberInput, onFiltersChange, filters.roomNumber])
+  // Get unique floors for filter
+  const floors = Array.from(new Set(rooms.map((room: { floor: number }) => room.floor))).sort((a, b) => a - b)
 
-  const handleSearch = () => {
-    if (searchInput !== filters.search) {
-      onFiltersChange({ search: searchInput, page: 1 })
-    }
+  // Client-side filtering
+  const filteredTenants = tenants.filter((tenant: TenantWithContracts) => {
+    const matchesSearch = tenant.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tenant.phone.includes(searchTerm)
+
+    const activeContract = getActiveContract(tenant)
+
+    const matchesRoomNumber = !roomNumberFilter ||
+                             (activeContract && activeContract.contract.room.number.toLowerCase().includes(roomNumberFilter.toLowerCase()))
+
+    const matchesFloor = floorFilter === 'ALL' ||
+                        (activeContract && activeContract.contract.room.floor === floorFilter)
+
+    return matchesSearch && matchesRoomNumber && matchesFloor
+  })
+
+  // Pagination for table view
+  const totalPages = Math.ceil(filteredTenants.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTenants = view === 'table' ? filteredTenants.slice(startIndex, endIndex) : filteredTenants
+
+  // Reset to first page when filters change
+  const resetPagination = () => {
+    setCurrentPage(1)
   }
 
   const handlePageChange = (newPage: number) => {
-    onFiltersChange({ page: newPage })
+    setCurrentPage(newPage)
   }
 
   const handleViewDetails = (tenant: TenantWithContracts) => {
@@ -78,10 +98,6 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
   const handleDelete = (tenant: TenantWithContracts) => {
     setDeletingTenant(tenant)
     setIsDeleteDialogOpen(true)
-  }
-
-  const getActiveContract = (tenant: TenantWithContracts) => {
-    return tenant.contracts?.find(ct => ct.contract.status === 'ACTIVE')
   }
 
   if (isLoading) {
@@ -103,89 +119,47 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
     )
   }
 
-  const tenants = data?.data || []
-  const pagination = data?.pagination
-
-  // Get unique floors from tenants with active contracts
-  const floors = Array.from(new Set(
-    tenants
-      .map(tenant => getActiveContract(tenant)?.contract.room.floor)
-      .filter(floor => floor !== undefined)
-  )).sort((a, b) => a - b)
-
-  // Handle floor filter change
-  const handleFloorFilterChange = (floor: number | 'ALL') => {
-    setFloorFilter(floor)
-    onFiltersChange({ 
-      floor: floor === 'ALL' ? undefined : floor, 
-      page: 1 
-    })
-  }
-
   return (
     <div className="space-y-6">
-      {/* Statistics */}
-      {pagination && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="text-sm text-blue-800">
-              <span className="font-semibold">Tổng số khách thuê:</span> {pagination.total} khách thuê
-            </div>
-            {(filters.search || filters.roomNumber || filters.floor) && (
-              <div className="text-sm text-blue-600">
-                Hiển thị {tenants.length} khách thuê sau khi lọc
-              </div>
-            )}
+      {/* Filters and Search - Client-side filtering */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Tìm kiếm theo tên, số điện thoại..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                resetPagination()
+              }}
+              className="pl-10"
+            />
+          </div>
+
+          <div className="relative flex-1 max-w-md">
+            <Input
+              placeholder="Tìm theo số phòng..."
+              value={roomNumberFilter}
+              onChange={(e) => {
+                setRoomNumberFilter(e.target.value)
+                resetPagination()
+              }}
+              className="flex-1"
+            />
           </div>
         </div>
-      )}
 
-      {/* Search and Filters */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Tìm kiếm theo tên, CCCD, số điện thoại..."
-                value={searchInput}
-                onChange={(e) => {
-                  setSearchInput(e.target.value)
-                  // Auto search on change like rooms page
-                  const handler = setTimeout(() => {
-                    if (e.target.value !== filters.search) {
-                      onFiltersChange({ search: e.target.value, page: 1 })
-                    }
-                  }, 300)
-                  return () => clearTimeout(handler)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch()
-                  }
-                }}
-                className="pl-10"
-              />
-            </div>
-
-            <div className="relative flex-1 max-w-md">
-              <Input
-                placeholder="Tìm theo số phòng..."
-                value={roomNumberInput}
-                onChange={(e) => setRoomNumberInput(e.target.value)}
-                className="flex-1"
-              />
-            </div>
-          </div>
-        </div>
-        
         {/* Floor Filter Buttons */}
         {floors.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={floorFilter === 'ALL' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => handleFloorFilterChange('ALL')}
+              onClick={() => {
+                setFloorFilter('ALL')
+                resetPagination()
+              }}
             >
               Tất cả tầng
             </Button>
@@ -194,19 +168,66 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
                 key={floor}
                 variant={floorFilter === floor ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleFloorFilterChange(floor)}
+                onClick={() => {
+                  setFloorFilter(floor)
+                  resetPagination()
+                }}
               >
                 Tầng {floor}
               </Button>
             ))}
           </div>
         )}
-      </Card>
+      </div>
+
+      {/* View Toggle */}
+      <div className="flex justify-end">
+        <div className="flex gap-2">
+          <Button
+            variant={view === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setView('grid')}
+          >
+            <Grid3X3 className="w-4 h-4 mr-2" />
+            Lưới
+          </Button>
+          <Button
+            variant={view === 'table' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setView('table')}
+          >
+            <Table className="w-4 h-4 mr-2" />
+            Bảng
+          </Button>
+        </div>
+      </div>
 
       {/* Content based on view */}
-      {view === 'grid' ? (
+      {filteredTenants.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 mb-4">
+            {searchTerm || roomNumberFilter || floorFilter !== 'ALL'
+              ? 'Không tìm thấy khách thuê phù hợp với bộ lọc'
+              : 'Chưa có khách thuê nào được tạo'
+            }
+          </p>
+          {(searchTerm || roomNumberFilter || floorFilter !== 'ALL') && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm('')
+                setRoomNumberFilter('')
+                setFloorFilter('ALL')
+                resetPagination()
+              }}
+            >
+              Xóa bộ lọc
+            </Button>
+          )}
+        </div>
+      ) : view === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tenants.map((tenant) => {
+          {filteredTenants.map((tenant) => {
             const activeContract = getActiveContract(tenant)
             
             return (
@@ -259,45 +280,43 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
       ) : (
         <div className="space-y-4">
           <TenantTable
-            tenants={tenants}
+            tenants={paginatedTenants}
             onView={handleViewDetails}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
 
-          {/* Pagination for Table View - Server-side pagination with rooms-style UI */}
-          {pagination && pagination.totalPages > 1 && (
+          {/* Pagination for Table View */}
+          {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Hiển thị {((filters.page || 1) - 1) * (filters.limit || 20) + 1} - {Math.min((filters.page || 1) * (filters.limit || 20), pagination.total)} trong tổng số {pagination.total} khách thuê
+                Hiển thị {startIndex + 1} - {Math.min(endIndex, filteredTenants.length)} trong tổng số {filteredTenants.length} khách thuê
               </div>
 
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={filters.page === 1}
-                  onClick={() => handlePageChange((filters.page || 1) - 1)}
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
                 >
                   Trước
                 </Button>
 
                 <div className="flex gap-1">
-                  {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => {
-                    const currentPage = filters.page || 1
-                    const totalPages = pagination.totalPages
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                     let startPage = Math.max(1, currentPage - 2)
                     const endPage = Math.min(totalPages, startPage + 4)
-                    
+
                     if (endPage - startPage < 4) {
                       startPage = Math.max(1, endPage - 4)
                     }
-                    
+
                     return startPage + i
-                  }).filter(page => page <= pagination.totalPages).map((page) => (
+                  }).filter(page => page <= totalPages).map((page) => (
                     <Button
                       key={page}
-                      variant={filters.page === page ? 'default' : 'outline'}
+                      variant={currentPage === page ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => handlePageChange(page)}
                       className="w-8 h-8 p-0"
@@ -310,63 +329,14 @@ export function TenantList({ view, filters, onFiltersChange }: TenantListProps) 
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={filters.page === pagination.totalPages}
-                  onClick={() => handlePageChange((filters.page || 1) + 1)}
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
                 >
                   Sau
                 </Button>
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Empty State */}
-      {tenants.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">
-            {filters.search || filters.roomNumber || filters.floor ? 'Không tìm thấy khách thuê nào' : 'Chưa có khách thuê nào'}
-          </p>
-          {(filters.search || filters.roomNumber || filters.floor) && (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchInput('')
-                setRoomNumberInput('')
-                setFloorFilter('ALL')
-                onFiltersChange({ search: '', roomNumber: '', floor: undefined, page: 1 })
-              }}
-            >
-              Xóa bộ lọc
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Pagination for Grid View (API pagination) */}
-      {view === 'grid' && pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={filters.page === 1}
-            onClick={() => handlePageChange((filters.page || 1) - 1)}
-          >
-            Trước
-          </Button>
-          
-          <span className="text-sm text-gray-600">
-            Trang {filters.page || 1} / {pagination.totalPages}
-          </span>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={filters.page === pagination.totalPages}
-            onClick={() => handlePageChange((filters.page || 1) + 1)}
-          >
-            Sau
-          </Button>
         </div>
       )}
 

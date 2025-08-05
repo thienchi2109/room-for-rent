@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { Edit, Trash2, Calendar, FileText } from 'lucide-react'
+import { Edit, Trash2, Calendar, FileText, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { FloatingActionButton } from '@/components/ui/floating-action-button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -103,14 +104,16 @@ export function ResidencyRecordList({
             {records.length} bản ghi
           </p>
         </div>
-        
+
         {showCreateButton && (
-          <Button
-            onClick={() => setIsCreateDialogOpen(true)}
-            size="sm"
-          >
-            Thêm bản ghi
-          </Button>
+          <div className="hidden lg:block">
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              size="sm"
+            >
+              Thêm bản ghi
+            </Button>
+          </div>
         )}
       </div>
 
@@ -209,6 +212,17 @@ export function ResidencyRecordList({
         onOpenChange={(open) => !open && setDeletingRecord(null)}
         record={deletingRecord || undefined}
       />
+
+      {/* Floating Action Button for Mobile */}
+      {showCreateButton && (
+        <FloatingActionButton
+          onClick={() => setIsCreateDialogOpen(true)}
+          icon={<Plus className="h-6 w-6" />}
+          size="default"
+        >
+          Thêm bản ghi
+        </FloatingActionButton>
+      )}
     </div>
   )
 }

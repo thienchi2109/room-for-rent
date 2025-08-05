@@ -15,9 +15,11 @@ import { RoomCard } from '@/components/rooms/RoomCard'
 import { RoomTable } from '@/components/rooms/RoomTable'
 import { RoomForm } from '@/components/rooms/RoomForm'
 import { RoomStatusDialog } from '@/components/rooms/RoomStatusDialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { RoomDetailsDialog } from '@/components/rooms/RoomDetailsDialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { TenantDialogFromRoom } from '@/components/tenants/TenantDialogFromRoom'
+import { FloatingActionButton } from '@/components/ui/floating-action-button'
 import { useRooms, useCreateRoom, useUpdateRoom, useUpdateRoomStatus, useDeleteRoom } from '@/hooks/useRooms'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import type { Room, RoomStatus, CreateRoomData, UpdateRoomData } from '@/types/room'
@@ -151,10 +153,13 @@ export default function RoomsPage() {
             Quản lý thông tin và trạng thái các phòng cho thuê
           </p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm phòng mới
-        </Button>
+        {/* Desktop Create Button - Hidden on mobile */}
+        <div className="hidden lg:block">
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm phòng mới
+          </Button>
+        </div>
       </div>
 
       {/* Filters and Search */}
@@ -413,31 +418,27 @@ export default function RoomsPage() {
       )}
 
       {/* Create Room Form */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="max-w-2xl w-full">
-            <RoomForm
-              onSubmit={handleCreateRoom}
-              onCancel={() => setShowCreateForm(false)}
-              isLoading={createRoomMutation.isPending}
-            />
-          </div>
-        </div>
-      )}
+      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <DialogContent>
+          <RoomForm
+            onSubmit={handleCreateRoom}
+            onCancel={() => setShowCreateForm(false)}
+            isLoading={createRoomMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Room Form */}
-      {editingRoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="max-w-2xl w-full">
-            <RoomForm
-              room={editingRoom}
-              onSubmit={handleUpdateRoom}
-              onCancel={() => setEditingRoom(null)}
-              isLoading={updateRoomMutation.isPending}
-            />
-          </div>
-        </div>
-      )}
+      <Dialog open={!!editingRoom} onOpenChange={(open) => !open && setEditingRoom(null)}>
+        <DialogContent>
+          <RoomForm
+            room={editingRoom || undefined}
+            onSubmit={handleUpdateRoom}
+            onCancel={() => setEditingRoom(null)}
+            isLoading={updateRoomMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Status Change Dialog */}
       <RoomStatusDialog
@@ -501,6 +502,15 @@ export default function RoomsPage() {
           }}
         />
       )}
+
+      {/* Floating Action Button for Mobile */}
+      <FloatingActionButton
+        onClick={() => setShowCreateForm(true)}
+        icon={<Plus className="h-6 w-6" />}
+        size="default"
+      >
+        Thêm phòng mới
+      </FloatingActionButton>
     </div>
   )
 }

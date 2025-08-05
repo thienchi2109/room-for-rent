@@ -53,7 +53,7 @@ describe('Contract API Endpoints', () => {
         number: 'TEST-ROOM-001',
         floor: 1,
         area: 25.5,
-        type: 'Standard',
+        capacity: 2,
         basePrice: 3000000,
         status: 'AVAILABLE'
       }

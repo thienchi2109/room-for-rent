@@ -1,24 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ContractStatusBadge } from './ContractStatusBadge'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { ContractStatusDialog } from './ContractStatusDialog'
+import { useCheckInContract } from '@/hooks/useContracts'
 import { 
-  Building, 
-  Users, 
-  Calendar, 
-  FileText, 
-  Phone, 
-  MapPin, 
-  Edit,
-  Settings,
-  Receipt,
-  Clock,
-  XCircle
+  X,
+  FileText,
+  Home,
+  Users,
+  User,
+  Wallet,
+  Pencil,
+  LogOut,
+  RefreshCw,
+  Phone,
+  Fingerprint,
+  Cake,
+  Building,
+  LucideIcon
 } from 'lucide-react'
 import { ContractWithDetails } from '@/types/contract'
 import { format } from 'date-fns'
@@ -32,6 +32,81 @@ interface ContractDetailDialogProps {
   onEdit?: (contract: ContractWithDetails) => void
 }
 
+// Helper Components
+const InfoRow = ({ icon: Icon, label, value, valueColorClass = 'text-slate-800' }: {
+  icon?: LucideIcon
+  label: string
+  value: React.ReactNode
+  valueColorClass?: string
+}) => (
+  <div className="flex justify-between items-center py-2">
+    <div className="flex items-center text-slate-500">
+      {Icon && <Icon className="w-4 h-4 mr-2" />}
+      <span className="text-sm">{label}</span>
+    </div>
+    <span className={`text-sm font-medium ${valueColorClass}`}>{value}</span>
+  </div>
+)
+
+const InfoCard = ({ title, icon: Icon, children }: {
+  title: string
+  icon: LucideIcon
+  children: React.ReactNode
+}) => (
+  <div className="bg-white border border-slate-200/80 rounded-xl">
+    <div className="p-4 border-b border-slate-200/80">
+      <h3 className="font-semibold text-slate-800 flex items-center">
+        <Icon className="w-5 h-5 mr-3 text-slate-500" />
+        {title}
+      </h3>
+    </div>
+    <div className="p-4 space-y-1">
+      {children}
+    </div>
+  </div>
+)
+
+interface TenantData {
+  name: string
+  phone: string
+  idCard: string
+  birthDate: string
+  hometown?: string
+  isMain: boolean
+}
+
+const TenantInfo = ({ tenant }: { tenant: TenantData }) => (
+  <div className={`p-4 rounded-lg ${tenant.isMain ? 'bg-blue-50/50 border border-blue-200' : ''}`}>
+    <div className="flex items-center mb-3">
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${tenant.isMain ? 'bg-blue-100' : 'bg-slate-100'}`}>
+        <User className={`w-5 h-5 ${tenant.isMain ? 'text-blue-600' : 'text-slate-500'}`} />
+      </div>
+      <div>
+        <p className="font-semibold text-slate-800">{tenant.name}</p>
+        {tenant.isMain && <span className="text-xs font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full">Khách chính</span>}
+      </div>
+    </div>
+    <div className="space-y-2 text-sm pl-2 border-l-2 border-slate-200 ml-5">
+      <div className="flex items-center text-slate-600">
+        <Phone className="w-3.5 h-3.5 mr-2.5" /> SĐT: {tenant.phone}
+      </div>
+      <div className="flex items-center text-slate-600">
+        <Fingerprint className="w-3.5 h-3.5 mr-2.5" /> CCCD: {tenant.idCard}
+      </div>
+      {tenant.birthDate && tenant.birthDate !== 'N/A' && (
+        <div className="flex items-center text-slate-600">
+          <Cake className="w-3.5 h-3.5 mr-2.5" /> Ngày sinh: {tenant.birthDate}
+        </div>
+      )}
+      {tenant.hometown && (
+        <div className="flex items-center text-slate-600">
+          <Building className="w-3.5 h-3.5 mr-2.5" /> Quê quán: {tenant.hometown}
+        </div>
+      )}
+    </div>
+  </div>
+)
+
 export function ContractDetailDialog({ 
   contract, 
   open, 
@@ -39,6 +114,7 @@ export function ContractDetailDialog({
   onEdit 
 }: ContractDetailDialogProps) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
+  const checkInMutation = useCheckInContract()
 
   if (!contract) return null
 
@@ -46,289 +122,233 @@ export function ContractDetailDialog({
   const otherTenants = contract.tenants.filter(ct => !ct.isPrimary)
   const remainingDays = ContractService.getRemainingDays(contract.endDate)
   const contractDuration = ContractService.getContractDuration(contract.startDate, contract.endDate)
-  const isExpiringSoon = ContractService.isExpiringSoon(contract.endDate)
-  const isExpired = ContractService.isExpired(contract.endDate)
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
+  }
+
+  // Get status info
+  const getStatusInfo = () => {
+    if (contract.status === 'ACTIVE') {
+      return {
+        color: 'bg-green-500',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        label: 'Đang hoạt động'
+      }
+    } else if (contract.status === 'EXPIRED') {
+      return {
+        color: 'bg-orange-500',
+        bgColor: 'bg-orange-100',
+        textColor: 'text-orange-800',
+        label: 'Hết hạn'
+      }
+    } else {
+      return {
+        color: 'bg-red-500',
+        bgColor: 'bg-red-100',
+        textColor: 'text-red-800',
+        label: 'Đã kết thúc'
+      }
+    }
+  }
+
+  const statusInfo = getStatusInfo()
+
+  // Prepare tenant data for display
+  const mainTenantData = primaryTenant ? {
+    name: primaryTenant.tenant.fullName,
+    phone: primaryTenant.tenant.phone,
+    idCard: primaryTenant.tenant.idCard,
+    birthDate: primaryTenant.tenant.dateOfBirth ? format(new Date(primaryTenant.tenant.dateOfBirth), 'dd/MM/yyyy', { locale: vi }) : 'N/A',
+    hometown: primaryTenant.tenant.hometown,
+    isMain: true
+  } : null
+
+  const otherTenantsData = otherTenants.map(ct => ({
+    name: ct.tenant.fullName,
+    phone: ct.tenant.phone,
+    idCard: ct.tenant.idCard,
+    birthDate: ct.tenant.dateOfBirth ? format(new Date(ct.tenant.dateOfBirth), 'dd/MM/yyyy', { locale: vi }) : 'N/A',
+    hometown: ct.tenant.hometown,
+    isMain: false
+  }))
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-semibold">
-                Chi tiết hợp đồng {contract.contractNumber}
-              </DialogTitle>
-              <div className="flex items-center gap-2">
-                <ContractStatusBadge 
-                  status={contract.status}
-                  endDate={contract.endDate}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsStatusDialogOpen(true)}
-                >
-                  <Settings className="w-4 h-4 mr-1" />
-                  Thay đổi trạng thái
-                </Button>
-                {onEdit && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEdit(contract)}
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Chỉnh sửa
-                  </Button>
-                )}
-              </div>
+        <DialogContent className="max-w-none w-full max-w-6xl p-0 gap-0 bg-slate-50 border-0 rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden">
+          {/* Header */}
+          <div className="flex justify-between items-start p-5 border-b border-slate-200 sticky top-0 bg-slate-50/80 backdrop-blur-sm z-10">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Chi tiết hợp đồng</h2>
+              <p className="text-sm text-slate-500 font-mono">{contract.contractNumber}</p>
             </div>
-          </DialogHeader>
-
-          <div className="space-y-6 px-1">
-            {/* Status Alert */}
-            {contract.status === 'ACTIVE' && isExpiringSoon && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-yellow-600" />
-                  <div>
-                    <h4 className="font-medium text-yellow-800">Hợp đồng sắp hết hạn</h4>
-                    <p className="text-yellow-700 text-sm">
-                      Hợp đồng sẽ hết hạn trong {remainingDays} ngày ({format(new Date(contract.endDate), 'dd/MM/yyyy', { locale: vi })})
-                    </p>
-                  </div>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className={`w-2.5 h-2.5 rounded-full ${statusInfo.color}`}></span>
+                <span className="font-medium text-slate-700">{statusInfo.label}</span>
+                <span className="text-slate-500">({remainingDays > 0 ? `${remainingDays} ngày` : `Quá hạn ${Math.abs(remainingDays)} ngày`})</span>
               </div>
-            )}
+              <button 
+                onClick={() => onOpenChange(false)} 
+                className="p-1.5 rounded-full text-slate-500 hover:bg-slate-200/80 transition-colors"
+                aria-label="Đóng"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
 
-            {contract.status === 'ACTIVE' && isExpired && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <XCircle className="w-5 h-5 text-red-600" />
-                  <div>
-                    <h4 className="font-medium text-red-800">Hợp đồng đã quá hạn</h4>
-                    <p className="text-red-700 text-sm">
-                      Hợp đồng đã quá hạn {Math.abs(remainingDays)} ngày kể từ {format(new Date(contract.endDate), 'dd/MM/yyyy', { locale: vi })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* Main Content */}
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 mb-6">
+              {contract.status === 'ACTIVE' && (
+                <button 
+                  onClick={() => setIsStatusDialogOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" /> Check-out
+                </button>
+              )}
+              
+              {contract.status !== 'ACTIVE' && contract.status !== 'TERMINATED' && (
+                <button 
+                  onClick={() => checkInMutation.mutate(contract.id)}
+                  disabled={checkInMutation.isPending}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50"
+                >
+                  <Building className="w-4 h-4" /> 
+                  {checkInMutation.isPending ? 'Đang xử lý...' : 'Check-in'}
+                </button>
+              )}
+              
+              <button 
+                onClick={() => setIsStatusDialogOpen(true)}
+                className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" /> Thay đổi
+              </button>
+              
+              {onEdit && (
+                <button 
+                  onClick={() => onEdit(contract)}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  <Pencil className="w-4 h-4" /> Chỉnh sửa
+                </button>
+              )}
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-6">
-                {/* Contract Information */}
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Thông tin hợp đồng
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Số hợp đồng:</span>
-                      <span className="font-medium">{contract.contractNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Trạng thái:</span>
-                      <ContractStatusBadge 
-                        status={contract.status}
-                        endDate={contract.endDate}
-                        size="sm"
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Ngày tạo:</span>
-                      <span className="font-medium">
-                        {format(new Date(contract.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
+            {/* Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Contract Info */}
+              <div className="lg:col-span-2 space-y-6">
+                <InfoCard title="Thông tin hợp đồng" icon={FileText}>
+                  <InfoRow 
+                    label="Trạng thái" 
+                    value={
+                      <span className={`flex items-center gap-2 text-sm font-medium ${statusInfo.bgColor} ${statusInfo.textColor} px-2 py-1 rounded-full`}>
+                        <span className={`w-2 h-2 rounded-full ${statusInfo.color}`}></span>
+                        {statusInfo.label} ({remainingDays > 0 ? `${remainingDays} ngày` : `Quá hạn ${Math.abs(remainingDays)} ngày`})
                       </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Ngày bắt đầu:</span>
-                      <span className="font-medium">
-                        {format(new Date(contract.startDate), 'dd/MM/yyyy', { locale: vi })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Ngày kết thúc:</span>
-                      <span className="font-medium">
-                        {format(new Date(contract.endDate), 'dd/MM/yyyy', { locale: vi })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Thời hạn:</span>
-                      <span className="font-medium">{contractDuration} ngày</span>
-                    </div>
-                    {contract.status === 'ACTIVE' && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Còn lại:</span>
-                        <span className={`font-medium ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : 'text-green-600'}`}>
-                          {isExpired ? `Quá hạn ${Math.abs(remainingDays)} ngày` : `${remainingDays} ngày`}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="text-gray-600">Tiền cọc:</span>
-                      <span className="font-bold text-lg text-green-600">
-                        {contract.deposit.toLocaleString('vi-VN')} ₫
-                      </span>
-                    </div>
-                  </div>
-                </Card>
+                    } 
+                  />
+                  <InfoRow 
+                    label="Ngày tạo" 
+                    value={contract.createdAt ? format(new Date(contract.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi }) : 'N/A'} 
+                  />
+                  <InfoRow 
+                    label="Ngày bắt đầu" 
+                    value={contract.startDate ? format(new Date(contract.startDate), 'dd/MM/yyyy', { locale: vi }) : 'N/A'} 
+                  />
+                  <InfoRow 
+                    label="Ngày kết thúc" 
+                    value={contract.endDate ? format(new Date(contract.endDate), 'dd/MM/yyyy', { locale: vi }) : 'N/A'} 
+                  />
+                  <InfoRow 
+                    label="Thời hạn" 
+                    value={`${contractDuration} ngày`} 
+                  />
+                  <InfoRow 
+                    label="Còn lại" 
+                    value={remainingDays > 0 ? `${remainingDays} ngày` : `Quá hạn ${Math.abs(remainingDays)} ngày`}
+                    valueColorClass={remainingDays > 0 ? 'text-green-600' : 'text-red-600'}
+                  />
+                  <InfoRow 
+                    label="Tiền cọc" 
+                    value={formatCurrency(contract.deposit)} 
+                    valueColorClass="text-green-600 font-bold" 
+                  />
+                </InfoCard>
 
-                {/* Room Information */}
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Building className="w-5 h-5" />
-                    Thông tin phòng
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Số phòng:</span>
-                      <span className="font-medium text-lg">{contract.room.number}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tầng:</span>
-                      <span className="font-medium">{contract.room.floor}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Diện tích:</span>
-                      <span className="font-medium">{contract.room.area}m²</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Sức chứa:</span>
-                      <span className="font-medium">{contract.room.capacity} người</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Trạng thái phòng:</span>
-                      <Badge variant={contract.room.status === 'OCCUPIED' ? 'default' : 'secondary'}>
+                <InfoCard title="Thông tin phòng" icon={Home}>
+                  <InfoRow label="Số phòng" value={contract.room.number} />
+                  <InfoRow label="Tầng" value={contract.room.floor} />
+                  <InfoRow 
+                    label="Diện tích" 
+                    value={`${contract.room.area}m²`} 
+                  />
+                  <InfoRow 
+                    label="Sức chứa" 
+                    value={`${contract.room.capacity} người`} 
+                  />
+                  <InfoRow 
+                    label="Trạng thái phòng" 
+                    value={
+                      <span className="text-sm font-medium bg-slate-800 text-white px-2.5 py-1 rounded-md">
                         {contract.room.status === 'OCCUPIED' ? 'Đã thuê' : 
                          contract.room.status === 'AVAILABLE' ? 'Có sẵn' :
                          contract.room.status === 'MAINTENANCE' ? 'Bảo trì' : 'Đã đặt'}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="text-gray-600">Giá thuê:</span>
-                      <span className="font-bold text-lg text-blue-600">
-                        {contract.room.basePrice.toLocaleString('vi-VN')} ₫/tháng
                       </span>
-                    </div>
-                  </div>
-                </Card>
+                    } 
+                  />
+                  <InfoRow 
+                    label="Giá thuê" 
+                    value={formatCurrency(contract.room.basePrice) + ' /tháng'} 
+                    valueColorClass="text-blue-600 font-bold" 
+                  />
+                </InfoCard>
               </div>
 
-              {/* Right Column */}
-              <div className="space-y-6">
-                {/* Primary Tenant */}
-                {primaryTenant && (
-                  <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      Khách thuê chính
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Users className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-lg">{primaryTenant.tenant.fullName}</h4>
-                          <Badge variant="default" className="text-xs">Khách chính</Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">SĐT:</span>
-                          <span className="font-medium">{primaryTenant.tenant.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">CCCD:</span>
-                          <span className="font-medium">{primaryTenant.tenant.idCard}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">Quê quán:</span>
-                          <span className="font-medium">{primaryTenant.tenant.hometown}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-600">Ngày sinh:</span>
-                          <span className="font-medium">
-                            {format(new Date(primaryTenant.tenant.dateOfBirth), 'dd/MM/yyyy', { locale: vi })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Other Tenants */}
-                {otherTenants.length > 0 && (
-                  <Card className="p-6">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      Khách thuê khác ({otherTenants.length})
-                    </h3>
-                    <div className="space-y-4">
-                      {otherTenants.map((contractTenant) => (
-                        <div key={contractTenant.tenantId} className="border-l-4 border-gray-300 pl-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium">{contractTenant.tenant.fullName}</h4>
-                          </div>
-                          <div className="space-y-1 text-sm text-gray-600">
-                            <div>SĐT: {contractTenant.tenant.phone}</div>
-                            <div>CCCD: {contractTenant.tenant.idCard}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                )}
-
-                {/* Bills Summary */}
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Receipt className="w-5 h-5" />
-                    Hóa đơn
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tổng hóa đơn:</span>
-                      <span className="font-medium">{contract._count?.bills || 0}</span>
-                    </div>
-                    {contract.bills && contract.bills.length > 0 && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Đã thanh toán:</span>
-                          <span className="font-medium text-green-600">
-                            {contract.bills.filter(bill => bill.status === 'PAID').length}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Chưa thanh toán:</span>
-                          <span className="font-medium text-red-600">
-                            {contract.bills.filter(bill => bill.status === 'UNPAID').length}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Quá hạn:</span>
-                          <span className="font-medium text-orange-600">
-                            {contract.bills.filter(bill => bill.status === 'OVERDUE').length}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                    <div className="pt-2 border-t">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Receipt className="w-4 h-4 mr-2" />
-                        Xem tất cả hóa đơn
-                      </Button>
-                    </div>
+              {/* Right Column - Tenants & Bills */}
+              <div className="lg:col-span-1 space-y-6">
+                <InfoCard title="Thông tin khách thuê" icon={Users}>
+                  <div className="space-y-4">
+                    {mainTenantData && <TenantInfo tenant={mainTenantData} />}
+                    {otherTenantsData.map((tenant, index) => (
+                      <TenantInfo key={index} tenant={tenant} />
+                    ))}
                   </div>
-                </Card>
+                </InfoCard>
+
+                <InfoCard title="Hóa đơn" icon={Wallet}>
+                  <InfoRow label="Tổng hóa đơn" value={contract._count?.bills || 0} />
+                  {contract.bills && contract.bills.length > 0 && (
+                    <>
+                      <InfoRow 
+                        label="Đã thanh toán" 
+                        value={contract.bills.filter(bill => bill.status === 'PAID').length}
+                        valueColorClass="text-green-600"
+                      />
+                      <InfoRow 
+                        label="Chưa thanh toán" 
+                        value={contract.bills.filter(bill => bill.status === 'UNPAID').length}
+                        valueColorClass="text-red-600"
+                      />
+                      <InfoRow 
+                        label="Quá hạn" 
+                        value={contract.bills.filter(bill => bill.status === 'OVERDUE').length}
+                        valueColorClass="text-orange-600"
+                      />
+                    </>
+                  )}
+                  <button className="w-full mt-2 text-center text-sm font-medium text-blue-600 hover:text-blue-700 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                    Xem tất cả hóa đơn
+                  </button>
+                </InfoCard>
               </div>
             </div>
           </div>

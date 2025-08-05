@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Eye, Edit, Trash2, Plus, Calendar, Building, Users, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { FloatingActionButton } from '@/components/ui/floating-action-button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -125,12 +126,14 @@ export function ContractList({
             Quản lý hợp đồng thuê phòng và theo dõi trạng thái
           </p>
         </div>
-        
+
         {showCreateButton && (
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Tạo hợp đồng mới
-          </Button>
+          <div className="hidden lg:block">
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Tạo hợp đồng mới
+            </Button>
+          </div>
         )}
       </div>
 
@@ -365,6 +368,17 @@ export function ContractList({
           open={!!deletingContract}
           onOpenChange={(open) => !open && setDeletingContract(null)}
         />
+      )}
+
+      {/* Floating Action Button for Mobile */}
+      {showCreateButton && (
+        <FloatingActionButton
+          onClick={() => setIsCreateDialogOpen(true)}
+          icon={<Plus className="h-6 w-6" />}
+          size="default"
+        >
+          Tạo hợp đồng mới
+        </FloatingActionButton>
       )}
     </div>
   )

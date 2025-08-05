@@ -167,9 +167,18 @@ export class ContractService {
     return statusMap[status] || 'outline'
   }
 
+  // Helper function to safely parse dates
+  private static safeParseDate(dateString: string | null | undefined): Date | null {
+    if (!dateString) return null
+    const date = new Date(dateString)
+    return isNaN(date.getTime()) ? null : date
+  }
+
   // Check if contract is expiring soon (within 30 days)
   static isExpiringSoon(endDate: string): boolean {
-    const end = new Date(endDate)
+    const end = this.safeParseDate(endDate)
+    if (!end) return false
+    
     const now = new Date()
     const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000))
     return end <= thirtyDaysFromNow && end > now
@@ -177,22 +186,29 @@ export class ContractService {
 
   // Check if contract is expired
   static isExpired(endDate: string): boolean {
-    const end = new Date(endDate)
+    const end = this.safeParseDate(endDate)
+    if (!end) return false
+    
     const now = new Date()
     return end < now
   }
 
   // Calculate contract duration in days
   static getContractDuration(startDate: string, endDate: string): number {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    const start = this.safeParseDate(startDate)
+    const end = this.safeParseDate(endDate)
+    
+    if (!start || !end) return 0
+    
     const diffTime = Math.abs(end.getTime() - start.getTime())
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   }
 
   // Calculate remaining days
   static getRemainingDays(endDate: string): number {
-    const end = new Date(endDate)
+    const end = this.safeParseDate(endDate)
+    if (!end) return 0
+    
     const now = new Date()
     const diffTime = end.getTime() - now.getTime()
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24))

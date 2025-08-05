@@ -3,25 +3,13 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { FloatingActionButton } from '@/components/ui/floating-action-button'
 import { TenantList } from '@/components/tenants/TenantList'
 import { TenantDialog } from '@/components/tenants/TenantDialog'
-import { TenantFilters } from '@/types/tenant'
 
 export default function TenantsPage() {
   const [view, setView] = useState<'grid' | 'table'>('grid')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [filters, setFilters] = useState<TenantFilters>({
-    page: 1,
-    limit: 20,
-    roomNumber: '',
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-    floor: undefined
-  })
-
-  const handleFiltersChange = (newFilters: Partial<TenantFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }))
-  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -33,37 +21,19 @@ export default function TenantsPage() {
             Quản lý thông tin khách thuê và lịch sử thuê phòng
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm khách thuê
-        </Button>
-      </div>
-
-      {/* View Toggle */}
-      <div className="flex justify-end">
-        <div className="flex gap-2">
-          <Button
-            variant={view === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setView('grid')}
-          >
-            Lưới
-          </Button>
-          <Button
-            variant={view === 'table' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setView('table')}
-          >
-            Bảng
+        {/* Desktop Create Button - Hidden on mobile */}
+        <div className="hidden lg:block">
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm khách thuê
           </Button>
         </div>
       </div>
 
-      {/* Tenant List */}
+      {/* Tenant List with integrated filters and view toggle */}
       <TenantList
         view={view}
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
+        setView={setView}
       />
 
       {/* Create Tenant Dialog */}
@@ -76,6 +46,15 @@ export default function TenantsPage() {
           // Refresh list will be handled by TanStack Query
         }}
       />
+
+      {/* Floating Action Button for Mobile */}
+      <FloatingActionButton
+        onClick={() => setIsCreateDialogOpen(true)}
+        icon={<Plus className="h-6 w-6" />}
+        size="default"
+      >
+        Thêm khách thuê
+      </FloatingActionButton>
     </div>
   )
 }

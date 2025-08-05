@@ -112,6 +112,11 @@
     - _Requirements: 3.1, 3.2, 3.5, 3.6_
 
   - [ ] 6.3 Implement check-in/check-out functionality
+
+
+
+
+
     - Create POST /api/contracts/:id/checkin endpoint
     - Create POST /api/contracts/:id/checkout endpoint
     - Implement room status updates during check-in/out

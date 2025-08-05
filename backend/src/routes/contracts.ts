@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { prisma } from '../lib/database'
 import { authenticate } from '../middleware/auth'
-import { validateRequest, createContractSchema, updateContractSchema } from '../lib/validation'
+import { validateRequest, createContractSchema, updateContractSchema, checkoutContractSchema } from '../lib/validation'
 import { Prisma, ContractStatus } from '@prisma/client'
 
 const router = Router()
@@ -99,7 +99,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
               id: true,
               number: true,
               floor: true,
-              type: true,
+              area: true,
+              capacity: true,
               basePrice: true,
               status: true
             }
@@ -181,7 +182,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
             number: true,
             floor: true,
             area: true,
-            type: true,
+            capacity: true,
             basePrice: true,
             status: true
           }
@@ -438,7 +439,8 @@ router.post('/', authenticate, validateRequest(createContractSchema), async (req
             id: true,
             number: true,
             floor: true,
-            type: true,
+            area: true,
+            capacity: true,
             basePrice: true
           }
         },
@@ -658,7 +660,8 @@ router.put('/:id', authenticate, validateRequest(updateContractSchema), async (r
             id: true,
             number: true,
             floor: true,
-            type: true,
+            area: true,
+            capacity: true,
             basePrice: true
           }
         },
@@ -803,6 +806,404 @@ router.delete('/:id', authenticate, async (req: Request, res: Response) => {
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to delete contract'
+    })
+  }
+})
+
+/**
+ * POST /api/contracts/:id/checkin
+ * Check-in contract (activate and update room status)
+ */
+router.post('/:id/checkin', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+
+    // Check if contract exists
+    const existingContract = await prisma.contract.findUnique({
+      where: { id },
+      include: {
+        room: {
+          select: {
+            id: true,
+            number: true,
+            status: true
+          }
+        },
+        tenants: {
+          include: {
+            tenant: {
+              select: {
+                id: true,
+                fullName: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!existingContract) {
+      res.status(404).json({
+        error: 'Contract not found',
+        message: `Contract with ID ${id} does not exist`
+      })
+      return
+    }
+
+    // Check if contract is already active
+    if (existingContract.status === 'ACTIVE') {
+      res.status(409).json({
+        error: 'Contract already active',
+        message: 'Contract is already in active status'
+      })
+      return
+    }
+
+    // Check if contract dates are valid for check-in
+    const now = new Date()
+    const startDate = new Date(existingContract.startDate)
+    const endDate = new Date(existingContract.endDate)
+
+    if (endDate <= now) {
+      res.status(400).json({
+        error: 'Contract expired',
+        message: 'Cannot check-in to an expired contract'
+      })
+      return
+    }
+
+    // Check if room is available
+    const conflictingContracts = await prisma.contract.findMany({
+      where: {
+        roomId: existingContract.roomId,
+        status: 'ACTIVE',
+        id: { not: id }
+      }
+    })
+
+    if (conflictingContracts.length > 0) {
+      res.status(409).json({
+        error: 'Room not available',
+        message: 'Room is already occupied by another active contract'
+      })
+      return
+    }
+
+    // Perform check-in in a transaction
+    const updatedContract = await prisma.$transaction(async (tx) => {
+      // Update contract status to ACTIVE
+      const contract = await tx.contract.update({
+        where: { id },
+        data: { 
+          status: 'ACTIVE',
+          updatedAt: new Date()
+        }
+      })
+
+      // Update room status to OCCUPIED
+      await tx.room.update({
+        where: { id: existingContract.roomId },
+        data: { status: 'OCCUPIED' }
+      })
+
+      return contract
+    })
+
+    // Fetch the complete updated contract with relations
+    const completeContract = await prisma.contract.findUnique({
+      where: { id: updatedContract.id },
+      include: {
+        room: {
+          select: {
+            id: true,
+            number: true,
+            floor: true,
+            area: true,
+            capacity: true,
+            basePrice: true,
+            status: true
+          }
+        },
+        tenants: {
+          include: {
+            tenant: {
+              select: {
+                id: true,
+                fullName: true,
+                phone: true,
+                idCard: true,
+                dateOfBirth: true,
+                hometown: true
+              }
+            }
+          },
+          orderBy: {
+            isPrimary: 'desc'
+          }
+        },
+        bills: {
+          orderBy: [
+            { year: 'desc' },
+            { month: 'desc' }
+          ]
+        }
+      }
+    })
+
+    console.log(`Contract ${existingContract.contractNumber} checked in by user ${req.user?.username} at ${new Date().toISOString()}`)
+
+    res.json({
+      message: 'Contract checked in successfully',
+      data: completeContract
+    })
+
+  } catch (error) {
+    console.error('Check-in contract error:', error)
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to check-in contract'
+    })
+  }
+})
+
+/**
+ * POST /api/contracts/:id/checkout
+ * Check-out contract (terminate and calculate final bill)
+ */
+router.post('/:id/checkout', authenticate, validateRequest(checkoutContractSchema), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const { reason } = req.body
+
+    // Check if contract exists
+    const existingContract = await prisma.contract.findUnique({
+      where: { id },
+      include: {
+        room: {
+          select: {
+            id: true,
+            number: true,
+            status: true,
+            basePrice: true
+          }
+        },
+        tenants: {
+          include: {
+            tenant: {
+              select: {
+                id: true,
+                fullName: true
+              }
+            }
+          }
+        },
+        bills: {
+          where: {
+            status: { in: ['UNPAID', 'OVERDUE'] }
+          }
+        }
+      }
+    })
+
+    if (!existingContract) {
+      res.status(404).json({
+        error: 'Contract not found',
+        message: `Contract with ID ${id} does not exist`
+      })
+      return
+    }
+
+    // Check if contract is active
+    if (existingContract.status !== 'ACTIVE') {
+      res.status(409).json({
+        error: 'Contract not active',
+        message: 'Only active contracts can be checked out'
+      })
+      return
+    }
+
+    // Check for unpaid bills
+    if (existingContract.bills.length > 0) {
+      res.status(409).json({
+        error: 'Unpaid bills exist',
+        message: 'Please settle all unpaid bills before checking out',
+        details: {
+          unpaidBills: existingContract.bills.length,
+          bills: existingContract.bills.map(bill => ({
+            id: bill.id,
+            month: bill.month,
+            year: bill.year,
+            totalAmount: bill.totalAmount,
+            status: bill.status
+          }))
+        }
+      })
+      return
+    }
+
+    const now = new Date()
+    const currentMonth = now.getMonth() + 1
+    const currentYear = now.getFullYear()
+
+    // Perform check-out in a transaction
+    const updatedContract = await prisma.$transaction(async (tx) => {
+      // Update contract status to TERMINATED
+      const contract = await tx.contract.update({
+        where: { id },
+        data: { 
+          status: 'TERMINATED',
+          updatedAt: new Date()
+        }
+      })
+
+      // Update room status to AVAILABLE
+      await tx.room.update({
+        where: { id: existingContract.roomId },
+        data: { status: 'AVAILABLE' }
+      })
+
+      // Check if we need to generate a final bill for the current month
+      const existingBill = await tx.bill.findUnique({
+        where: {
+          contractId_month_year: {
+            contractId: id,
+            month: currentMonth,
+            year: currentYear
+          }
+        }
+      })
+
+      // Generate final bill if it doesn't exist
+      if (!existingBill) {
+        // Get the latest meter readings for this room
+        const latestReading = await tx.meterReading.findFirst({
+          where: {
+            roomId: existingContract.roomId,
+            OR: [
+              { month: currentMonth, year: currentYear },
+              { month: currentMonth - 1, year: currentMonth === 1 ? currentYear - 1 : currentYear }
+            ]
+          },
+          orderBy: [
+            { year: 'desc' },
+            { month: 'desc' }
+          ]
+        })
+
+        // Get previous reading for consumption calculation
+        const previousReading = await tx.meterReading.findFirst({
+          where: {
+            roomId: existingContract.roomId,
+            OR: [
+              { 
+                month: currentMonth - 1, 
+                year: currentMonth === 1 ? currentYear - 1 : currentYear 
+              },
+              { 
+                month: currentMonth - 2, 
+                year: currentMonth <= 2 ? currentYear - 1 : currentYear 
+              }
+            ]
+          },
+          orderBy: [
+            { year: 'desc' },
+            { month: 'desc' }
+          ]
+        })
+
+        // Calculate consumption (default to 0 if no readings)
+        const electricConsumption = latestReading && previousReading 
+          ? Math.max(0, latestReading.electricReading - previousReading.electricReading)
+          : 0
+        const waterConsumption = latestReading && previousReading
+          ? Math.max(0, latestReading.waterReading - previousReading.waterReading)
+          : 0
+
+        // Get pricing from settings (using default values for now)
+        const electricPrice = 3500 // VND per kWh - should be from settings
+        const waterPrice = 25000 // VND per m³ - should be from settings
+
+        const rentAmount = existingContract.room.basePrice.toNumber()
+        const electricAmount = electricConsumption * electricPrice
+        const waterAmount = waterConsumption * waterPrice
+        const serviceAmount = 0 // Additional services if any
+        const totalAmount = rentAmount + electricAmount + waterAmount + serviceAmount
+
+        // Create final bill
+        await tx.bill.create({
+          data: {
+            contractId: id,
+            roomId: existingContract.roomId,
+            month: currentMonth,
+            year: currentYear,
+            rentAmount,
+            electricAmount,
+            waterAmount,
+            serviceAmount,
+            totalAmount,
+            status: 'UNPAID',
+            dueDate: new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)), // Due in 7 days
+            createdAt: now
+          }
+        })
+      }
+
+      return contract
+    })
+
+    // Fetch the complete updated contract with relations
+    const completeContract = await prisma.contract.findUnique({
+      where: { id: updatedContract.id },
+      include: {
+        room: {
+          select: {
+            id: true,
+            number: true,
+            floor: true,
+            area: true,
+            capacity: true,
+            basePrice: true,
+            status: true
+          }
+        },
+        tenants: {
+          include: {
+            tenant: {
+              select: {
+                id: true,
+                fullName: true,
+                phone: true,
+                idCard: true,
+                dateOfBirth: true,
+                hometown: true
+              }
+            }
+          },
+          orderBy: {
+            isPrimary: 'desc'
+          }
+        },
+        bills: {
+          orderBy: [
+            { year: 'desc' },
+            { month: 'desc' }
+          ]
+        }
+      }
+    })
+
+    console.log(`Contract ${existingContract.contractNumber} checked out by user ${req.user?.username} at ${new Date().toISOString()}${reason ? ` with reason: ${reason}` : ''}`)
+
+    res.json({
+      message: 'Contract checked out successfully',
+      data: completeContract
+    })
+
+  } catch (error) {
+    console.error('Check-out contract error:', error)
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to check-out contract'
     })
   }
 })

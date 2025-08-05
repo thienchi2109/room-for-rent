@@ -77,7 +77,7 @@ export function RoomForm({ room, onSubmit, onCancel, isLoading }: RoomFormProps)
   const statusOptions = RoomService.getRoomStatusOptions()
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>
           {isEditMode ? `Sửa phòng ${room.number}` : 'Tạo phòng mới'}
@@ -185,14 +185,14 @@ export function RoomForm({ room, onSubmit, onCancel, isLoading }: RoomFormProps)
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1"
+            className=""
           >
             Hủy
           </Button>
           <Button
             type="submit"
             disabled={isLoading}
-            className="flex-1"
+            className=""
           >
             {isLoading ? 'Đang xử lý...' : (isEditMode ? 'Cập nhật' : 'Tạo mới')}
           </Button>

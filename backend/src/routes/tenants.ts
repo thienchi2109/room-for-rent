@@ -18,7 +18,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       search = '',
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      roomNumber = ''
+      roomNumber = '',
+      floor = ''
     } = req.query
 
     const pageNum = Math.max(1, parseInt(page as string))
@@ -36,18 +37,39 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       ]
     }
 
+    // Build room-based filters
+    const roomFilters: any[] = []
+    
     if (roomNumber) {
+      roomFilters.push({
+        room: {
+          number: {
+            contains: roomNumber as string,
+            mode: 'insensitive',
+          },
+        },
+      })
+    }
+
+    if (floor) {
+      const floorNum = parseInt(floor as string)
+      if (!isNaN(floorNum)) {
+        roomFilters.push({
+          room: {
+            floor: floorNum,
+          },
+        })
+      }
+    }
+
+    // Apply room filters if any exist
+    if (roomFilters.length > 0) {
       where.contracts = {
         some: {
           contract: {
-            room: {
-              number: {
-                contains: roomNumber as string,
-                mode: 'insensitive',
-              },
-            },
-          },
-        },
+            AND: roomFilters
+          }
+        }
       }
     }
 
@@ -73,7 +95,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
                       id: true,
                       number: true,
                       floor: true,
-                      type: true
+                      capacity: true
                     }
                   }
                 }
@@ -140,7 +162,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
                     id: true,
                     number: true,
                     floor: true,
-                    type: true,
+                    capacity: true,
                     basePrice: true
                   }
                 },
@@ -413,7 +435,7 @@ router.get('/:id/history', authenticate, async (req: Request, res: Response) => 
                   id: true,
                   number: true,
                   floor: true,
-                  type: true,
+                  capacity: true,
                   basePrice: true
                 }
               },
