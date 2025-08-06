@@ -97,15 +97,24 @@ export function BillForm({ bill, open, onOpenChange, onSuccess }: BillFormProps)
   useEffect(() => {
     if (autoCalculateTotal) {
       const [rent, electric, water, service] = watchedValues
-      const total = (rent || 0) + (electric || 0) + (water || 0) + (service || 0)
-      setValue('totalAmount', total)
+      const newTotal = (rent || 0) + (electric || 0) + (water || 0) + (service || 0)
+      const currentTotal = form.getValues('totalAmount')
+      
+      // Only update if the total has actually changed
+      if (currentTotal !== newTotal) {
+        setValue('totalAmount', newTotal)
+      }
     }
-  }, [watchedValues, autoCalculateTotal, setValue])
+  }, [watchedValues, autoCalculateTotal, setValue, form])
 
   // Initialize form when editing
   useEffect(() => {
-    if (bill && open) {
-      reset({
+    if (!open) return
+
+    if (bill) {
+      // Only reset if bill data is different
+      const currentData = form.getValues()
+      const newData = {
         contractId: bill.contractId,
         roomId: bill.roomId,
         month: bill.month,
@@ -117,27 +126,35 @@ export function BillForm({ bill, open, onOpenChange, onSuccess }: BillFormProps)
         totalAmount: bill.totalAmount,
         dueDate: new Date(bill.dueDate),
         status: bill.status
-      })
-      setSelectedContractId(bill.contractId)
-    } else if (!bill && open) {
-      // Reset form for new bill
-      const currentDate = new Date()
-      reset({
-        contractId: '',
-        roomId: '',
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear(),
-        rentAmount: 0,
-        electricAmount: 0,
-        waterAmount: 0,
-        serviceAmount: 0,
-        totalAmount: 0,
-        dueDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 5), // 5th of next month
-        status: BillStatus.UNPAID
-      })
-      setSelectedContractId('')
+      }
+      
+      // Check if form data needs to be updated
+      if (currentData.contractId !== newData.contractId) {
+        reset(newData)
+        setSelectedContractId(bill.contractId)
+      }
+    } else {
+      // Reset form for new bill only if it's not already reset
+      const currentData = form.getValues()
+      if (currentData.contractId !== '') {
+        const currentDate = new Date()
+        reset({
+          contractId: '',
+          roomId: '',
+          month: currentDate.getMonth() + 1,
+          year: currentDate.getFullYear(),
+          rentAmount: 0,
+          electricAmount: 0,
+          waterAmount: 0,
+          serviceAmount: 0,
+          totalAmount: 0,
+          dueDate: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 5), // 5th of next month
+          status: BillStatus.UNPAID
+        })
+        setSelectedContractId('')
+      }
     }
-  }, [bill, open, reset])
+  }, [bill?.id, open, reset, form])
 
   // Handle contract selection
   const handleContractChange = (contractId: string) => {

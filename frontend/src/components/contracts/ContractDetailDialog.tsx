@@ -20,6 +20,7 @@ import {
   Cake,
   Building,
   Receipt,
+  Trash2,
   LucideIcon
 } from 'lucide-react'
 import { ContractWithDetails } from '@/types/contract'
@@ -32,6 +33,7 @@ interface ContractDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onEdit?: (contract: ContractWithDetails) => void
+  onDelete?: (contract: ContractWithDetails) => void
 }
 
 // Helper Components
@@ -113,7 +115,8 @@ export function ContractDetailDialog({
   contract, 
   open, 
   onOpenChange, 
-  onEdit 
+  onEdit,
+  onDelete
 }: ContractDetailDialogProps) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false)
@@ -245,10 +248,25 @@ export function ContractDetailDialog({
               
               {onEdit && (
                 <button 
-                  onClick={() => onEdit(contract)}
+                  onClick={() => {
+                    onEdit(contract)
+                    onOpenChange(false)
+                  }}
                   className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
                 >
                   <Pencil className="w-4 h-4" /> Chỉnh sửa
+                </button>
+              )}
+
+              {onDelete && (
+                <button 
+                  onClick={() => {
+                    onDelete(contract)
+                    onOpenChange(false)
+                  }}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm"
+                >
+                  <Trash2 className="w-4 h-4" /> Xóa
                 </button>
               )}
             </div>

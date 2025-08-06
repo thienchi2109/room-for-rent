@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Eye, Edit, Trash2, Plus, Calendar, Building, Users, FileText } from 'lucide-react'
+import { Search, Plus, Calendar, Building, Users, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FloatingActionButton } from '@/components/ui/floating-action-button'
 import { Input } from '@/components/ui/input'
@@ -196,7 +196,11 @@ export function ContractList({
           {/* Contract Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {contracts.map((contract) => (
-              <Card key={contract.id} className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+              <Card 
+                key={contract.id} 
+                className="p-6 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleContractClick(contract)}
+              >
                 <div className="space-y-4">
                   {/* Header */}
                   <div className="flex items-start justify-between">
@@ -266,42 +270,6 @@ export function ContractList({
                       {contract.deposit.toLocaleString('vi-VN')} ₫
                     </span>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleContractClick(contract)
-                      }}
-                      className="flex-1"
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Xem
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleEditContract(contract)
-                      }}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteContract(contract)
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
               </Card>
             ))}
@@ -345,6 +313,7 @@ export function ContractList({
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
         onEdit={handleEditContract}
+        onDelete={handleDeleteContract}
       />
 
       <ContractForm

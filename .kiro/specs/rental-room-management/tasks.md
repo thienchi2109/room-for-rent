@@ -189,7 +189,7 @@
     - Create revenue calculation and aggregation logic
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 10.2 Build dashboard UI with charts
+  - [x] 10.2 Build dashboard UI with charts
     - Create dashboard overview with key statistics
     - Implement revenue charts using Recharts
     - Add room occupancy visualization
@@ -219,8 +219,7 @@
     - _Requirements: Settings module from design_
 
 - [ ] 12. Implement automated scheduling system
-  - [ ] 12.1 Setup node-cron job scheduler
-    - Create cron job for monthly bill generation
+g    - Create cron job for monthly bill generation
     - Implement contract expiry notification job
     - Add overdue payment reminder job
     - Create error logging and notification system

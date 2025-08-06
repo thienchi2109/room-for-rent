@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { useBills } from '../../hooks/useBills'
 import { BillFilters, Bill } from '../../types/bill'
 import { BillStatus } from '../../../../shared/src/types/models'
@@ -37,9 +37,10 @@ import { vi } from 'date-fns/locale'
 
 interface BillListProps {
   className?: string
+  showHeader?: boolean
 }
 
-export function BillList({ className }: BillListProps) {
+function BillList({ className, showHeader = true }: BillListProps) {
   const [filters, setFilters] = useState<BillFilters>({
     page: 1,
     limit: 20,
@@ -55,76 +56,108 @@ export function BillList({ className }: BillListProps) {
   const [showGenerateDialog, setShowGenerateDialog] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
-  const { data, isLoading, error } = useBills(filters)
+  // Create stable filters object to prevent React Query from refetching unnecessarily
+  const stableFilters = useMemo(() => {
+    // Remove undefined values to create a clean object
+    const cleanFilters: BillFilters = {
+      page: filters.page,
+      limit: filters.limit,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+    }
+    
+    // Only add defined values
+    if (filters.status !== undefined) cleanFilters.status = filters.status
+    if (filters.month !== undefined) cleanFilters.month = filters.month
+    if (filters.year !== undefined) cleanFilters.year = filters.year
+    if (filters.search !== undefined && filters.search !== '') cleanFilters.search = filters.search
+    if (filters.contractId !== undefined) cleanFilters.contractId = filters.contractId
+    if (filters.roomId !== undefined) cleanFilters.roomId = filters.roomId
+    
+    return cleanFilters
+  }, [
+    filters.page,
+    filters.limit,
+    filters.sortBy,
+    filters.sortOrder,
+    filters.status,
+    filters.month,
+    filters.year,
+    filters.search,
+    filters.contractId,
+    filters.roomId
+  ])
+
+  const { data, isLoading, error } = useBills(stableFilters)
 
   // Update search filter with debounce
-  const handleSearch = (value: string) => {
+  const handleSearch = useCallback((value: string) => {
     setSearchTerm(value)
     setFilters(prev => ({
       ...prev,
       search: value || undefined,
       page: 1
     }))
-  }
+  }, [])
 
   // Filter handlers
-  const handleStatusFilter = (status: string) => {
+  const handleStatusFilter = useCallback((status: string) => {
     setFilters(prev => ({
       ...prev,
       status: status === 'all' ? undefined : status as BillStatus,
       page: 1
     }))
-  }
+  }, [])
 
-  const handleMonthFilter = (month: string) => {
+  const handleMonthFilter = useCallback((month: string) => {
     setFilters(prev => ({
       ...prev,
       month: month === 'all' ? undefined : parseInt(month),
       page: 1
     }))
-  }
+  }, [])
 
-  const handleYearFilter = (year: string) => {
+  const handleYearFilter = useCallback((year: string) => {
     setFilters(prev => ({
       ...prev,
       year: year === 'all' ? undefined : parseInt(year),
       page: 1
     }))
-  }
+  }, [])
 
   // Pagination handlers
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     setFilters(prev => ({ ...prev, page: newPage }))
-  }
+  }, [])
 
   // Action handlers
-  const handleViewBill = (bill: Bill) => {
+  const handleViewBill = useCallback((bill: Bill) => {
     setSelectedBill(bill)
     setShowDetailDialog(true)
-  }
+  }, [])
 
-  const handleEditBill = (bill: Bill) => {
+  const handleEditBill = useCallback((bill: Bill) => {
     setSelectedBill(bill)
     setShowEditForm(true)
-  }
+  }, [])
 
-  const handlePayBill = (bill: Bill) => {
+  const handlePayBill = useCallback((bill: Bill) => {
     setSelectedBill(bill)
     setShowPayDialog(true)
-  }
+  }, [])
 
   // Format currency
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
     }).format(amount)
-  }
+  }, [])
 
   // Get current month/year options
   const currentYear = new Date().getFullYear()
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
-  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const years = useMemo(() => Array.from({ length: 5 }, (_, i) => currentYear - i), [currentYear])
+  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), [])
 
   if (isLoading) {
     return (
@@ -148,32 +181,36 @@ export function BillList({ className }: BillListProps) {
   return (
     <div className={`space-y-6 ${className || ''}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Quản lý Hóa đơn
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Quản lý hóa đơn thanh toán của khách thuê
-          </p>
-        </div>
-        
-        <div className="hidden sm:flex items-center gap-3">
-          <Button 
-            onClick={() => setShowCreateForm(true)}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Tạo hóa đơn
-          </Button>
-        </div>
-      </div>
+      {showHeader && (
+        <>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Quản lý Hóa đơn
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Quản lý hóa đơn thanh toán của khách thuê
+              </p>
+            </div>
+            
+            <div className="hidden sm:flex items-center gap-3">
+              <Button 
+                onClick={() => setShowCreateForm(true)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Tạo hóa đơn
+              </Button>
+            </div>
+          </div>
 
-      {/* Statistics */}
-      <BillStats 
-        month={filters.month} 
-        year={filters.year} 
-      />
+          {/* Statistics */}
+          <BillStats 
+            month={filters.month} 
+            year={filters.year} 
+          />
+        </>
+      )}
 
       {/* Filters */}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-white to-gray-50">
@@ -492,3 +529,10 @@ export function BillList({ className }: BillListProps) {
     </div>
   )
 }
+
+// Memoize component to prevent unnecessary re-renders
+const MemoizedBillList = React.memo(BillList)
+
+// Export both named and default
+export default MemoizedBillList
+export { MemoizedBillList as BillList }

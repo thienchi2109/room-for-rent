@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '../lib/api'
 
 // Types for dashboard API responses
 export interface DashboardOverviewResponse {
@@ -123,22 +124,7 @@ export function useDashboardOverview(month?: number, year?: number) {
   return useQuery<DashboardOverviewResponse['data']>({
     queryKey: ['dashboard-overview', month, year],
     queryFn: async () => {
-      const params = new URLSearchParams()
-      if (month) params.append('month', month.toString())
-      if (year) params.append('year', year.toString())
-      
-      const response = await fetch(`/api/dashboard/overview?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: DashboardOverviewResponse = await response.json()
+      const result = await apiClient.getDashboardOverview(month, year) as DashboardOverviewResponse
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch dashboard overview')
@@ -155,22 +141,7 @@ export function useDashboardRevenue(year?: number, months?: number) {
   return useQuery<DashboardRevenueResponse['data']>({
     queryKey: ['dashboard-revenue', year, months],
     queryFn: async () => {
-      const params = new URLSearchParams()
-      if (year) params.append('year', year.toString())
-      if (months) params.append('months', months.toString())
-      
-      const response = await fetch(`/api/dashboard/revenue?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: DashboardRevenueResponse = await response.json()
+      const result = await apiClient.getDashboardRevenue(year, months) as DashboardRevenueResponse
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch revenue data')
@@ -187,21 +158,7 @@ export function useDashboardNotifications(limit?: number) {
   return useQuery<DashboardNotificationsResponse['data']>({
     queryKey: ['dashboard-notifications', limit],
     queryFn: async () => {
-      const params = new URLSearchParams()
-      if (limit) params.append('limit', limit.toString())
-      
-      const response = await fetch(`/api/dashboard/notifications?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: DashboardNotificationsResponse = await response.json()
+      const result = await apiClient.getDashboardNotifications(limit) as DashboardNotificationsResponse
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch notifications')
