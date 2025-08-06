@@ -499,6 +499,177 @@ export const checkoutContractSchema = Joi.object({
     })
 })
 
+// Bill creation validation schema
+export const createBillSchema = Joi.object({
+  contractId: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Contract ID is required',
+      'any.required': 'Contract ID is required'
+    }),
+
+  roomId: Joi.string()
+    .required()
+    .trim()
+    .messages({
+      'string.empty': 'Room ID is required',
+      'any.required': 'Room ID is required'
+    }),
+
+  month: Joi.number()
+    .integer()
+    .min(1)
+    .max(12)
+    .required()
+    .messages({
+      'number.base': 'Month must be a number',
+      'number.integer': 'Month must be an integer',
+      'number.min': 'Month must be between 1 and 12',
+      'number.max': 'Month must be between 1 and 12',
+      'any.required': 'Month is required'
+    }),
+
+  year: Joi.number()
+    .integer()
+    .min(2020)
+    .max(2100)
+    .required()
+    .messages({
+      'number.base': 'Year must be a number',
+      'number.integer': 'Year must be an integer',
+      'number.min': 'Year must be at least 2020',
+      'number.max': 'Year must not exceed 2100',
+      'any.required': 'Year is required'
+    }),
+
+  rentAmount: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      'number.base': 'Rent amount must be a number',
+      'number.positive': 'Rent amount must be a positive number',
+      'any.required': 'Rent amount is required'
+    }),
+
+  electricAmount: Joi.number()
+    .min(0)
+    .required()
+    .messages({
+      'number.base': 'Electric amount must be a number',
+      'number.min': 'Electric amount cannot be negative',
+      'any.required': 'Electric amount is required'
+    }),
+
+  waterAmount: Joi.number()
+    .min(0)
+    .required()
+    .messages({
+      'number.base': 'Water amount must be a number',
+      'number.min': 'Water amount cannot be negative',
+      'any.required': 'Water amount is required'
+    }),
+
+  serviceAmount: Joi.number()
+    .min(0)
+    .default(0)
+    .messages({
+      'number.base': 'Service amount must be a number',
+      'number.min': 'Service amount cannot be negative'
+    }),
+
+  totalAmount: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      'number.base': 'Total amount must be a number',
+      'number.positive': 'Total amount must be a positive number',
+      'any.required': 'Total amount is required'
+    }),
+
+  dueDate: Joi.date()
+    .required()
+    .messages({
+      'date.base': 'Due date must be a valid date',
+      'any.required': 'Due date is required'
+    }),
+
+  status: Joi.string()
+    .valid('UNPAID', 'PAID', 'OVERDUE')
+    .default('UNPAID')
+    .messages({
+      'any.only': 'Status must be one of: UNPAID, PAID, OVERDUE'
+    })
+})
+
+// Bill update validation schema (all fields optional)
+export const updateBillSchema = Joi.object({
+  rentAmount: Joi.number()
+    .positive()
+    .messages({
+      'number.base': 'Rent amount must be a number',
+      'number.positive': 'Rent amount must be a positive number'
+    }),
+
+  electricAmount: Joi.number()
+    .min(0)
+    .messages({
+      'number.base': 'Electric amount must be a number',
+      'number.min': 'Electric amount cannot be negative'
+    }),
+
+  waterAmount: Joi.number()
+    .min(0)
+    .messages({
+      'number.base': 'Water amount must be a number',
+      'number.min': 'Water amount cannot be negative'
+    }),
+
+  serviceAmount: Joi.number()
+    .min(0)
+    .messages({
+      'number.base': 'Service amount must be a number',
+      'number.min': 'Service amount cannot be negative'
+    }),
+
+  totalAmount: Joi.number()
+    .positive()
+    .messages({
+      'number.base': 'Total amount must be a number',
+      'number.positive': 'Total amount must be a positive number'
+    }),
+
+  dueDate: Joi.date()
+    .messages({
+      'date.base': 'Due date must be a valid date'
+    }),
+
+  status: Joi.string()
+    .valid('UNPAID', 'PAID', 'OVERDUE')
+    .messages({
+      'any.only': 'Status must be one of: UNPAID, PAID, OVERDUE'
+    })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+})
+
+// Bill payment validation schema
+export const payBillSchema = Joi.object({
+  paidDate: Joi.date()
+    .default(() => new Date())
+    .messages({
+      'date.base': 'Paid date must be a valid date'
+    }),
+
+  notes: Joi.string()
+    .max(500)
+    .allow('')
+    .trim()
+    .messages({
+      'string.max': 'Notes must not exceed 500 characters'
+    })
+})
+
 // Validation middleware factory
 export function validateRequest(schema: Joi.ObjectSchema) {
   return (req: any, res: any, next: any) => {

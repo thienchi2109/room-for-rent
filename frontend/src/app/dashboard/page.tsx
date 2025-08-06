@@ -1,121 +1,149 @@
 'use client'
 
+import { Suspense } from 'react'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import { Building, Users, FileText, CreditCard } from 'lucide-react'
-import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
-import apiClient from '@/lib/api'
-import type { DashboardStats } from '@/types/dashboard'
+import { DashboardOverview } from '../../components/dashboard/DashboardOverview'
+import { RevenueChart } from '../../components/dashboard/RevenueChart'
+import { NotificationsPanel } from '../../components/dashboard/NotificationsPanel'
+import { RoomOccupancyChart } from '../../components/dashboard/RoomOccupancyChart'
+import { LoadingSpinner } from '../../components/ui/loading-spinner'
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Bell,
+  Building2,
+  Sparkles
+} from 'lucide-react'
 
 export default function DashboardPage() {
-  const { data: stats, isLoading, error } = useQuery<DashboardStats>({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => apiClient.getDashboardStats() as Promise<DashboardStats>,
-  })
-
-  const displayStats = stats || {
-    totalRooms: 0,
-    occupiedRooms: 0,
-    availableRooms: 0,
-    totalTenants: 0
-  }
   return (
     <ProtectedRoute>
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Welcome Section */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            CHÀO MỪNG ĐẾN VỚI HỆ THỐNG QUẢN LÝ NHÀ TRỌ CHUYÊN NGHIỆP!
-          </h1>
-          <p className="text-gray-600 mb-8">
-            Quản lý phòng, khách thuê và hợp đồng một cách hiệu quả
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Link href="/rooms">
-            <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center space-x-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Building className="w-6 h-6 text-blue-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        {/* Header */}
+        <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+                  <LayoutDashboard className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Quản lý phòng</h3>
-                  <p className="text-sm text-gray-600">Thêm, sửa, xóa phòng</p>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                    Dashboard
+                  </h1>
+                  <p className="text-gray-600 mt-1">
+                    Tổng quan hệ thống quản lý phòng trọ
+                  </p>
                 </div>
               </div>
-            </div>
-          </Link>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border opacity-50">
-            <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-3 rounded-full">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Khách thuê</h3>
-                <p className="text-sm text-gray-600">Sắp ra mắt</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border opacity-50">
-            <div className="flex items-center space-x-4">
-              <div className="bg-purple-100 p-3 rounded-full">
-                <FileText className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Hợp đồng</h3>
-                <p className="text-sm text-gray-600">Sắp ra mắt</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border opacity-50">
-            <div className="flex items-center space-x-4">
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <CreditCard className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Thanh toán</h3>
-                <p className="text-sm text-gray-600">Sắp ra mắt</p>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg shadow-md">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium">Live Data</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Tổng quan hệ thống
-          </h2>
-          {isLoading ? (
-            <div className="text-center text-gray-500">Đang tải...</div>
-          ) : error ? (
-            <div className="text-center text-red-500">
-              Lỗi: {error instanceof Error ? error.message : 'Không thể tải dữ liệu'}
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            {/* Left Column - Overview Cards & Revenue Chart */}
+            <div className="lg:col-span-8 space-y-8">
+
+              {/* Overview Cards */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Tổng quan Hệ thống
+                  </h2>
+                </div>
+
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                }>
+                  <DashboardOverview />
+                </Suspense>
+              </div>
+
+              {/* Revenue Chart */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Biểu đồ Doanh thu
+                  </h2>
+                </div>
+
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                }>
+                  <RevenueChart />
+                </Suspense>
+              </div>
+
+              {/* Room Occupancy Chart */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                    <Building2 className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Tình trạng Phòng
+                  </h2>
+                </div>
+
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                }>
+                  <RoomOccupancyChart />
+                </Suspense>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{displayStats.totalRooms}</div>
-                <div className="text-sm text-gray-600">Tổng số phòng</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{displayStats.occupiedRooms}</div>
-                <div className="text-sm text-gray-600">Phòng đã cho thuê</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">{displayStats.availableRooms}</div>
-                <div className="text-sm text-gray-600">Phòng có sẵn</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{displayStats.totalTenants}</div>
-                <div className="text-sm text-gray-600">Tổng khách thuê</div>
+
+            {/* Right Column - Notifications */}
+            <div className="lg:col-span-4">
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 sticky top-32">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
+                    <Bell className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Thông báo & Cảnh báo
+                  </h2>
+                </div>
+
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                }>
+                  <NotificationsPanel />
+                </Suspense>
               </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Background Decorations */}
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-emerald-400/10 to-teal-400/10 rounded-full blur-3xl"></div>
         </div>
       </div>
     </ProtectedRoute>

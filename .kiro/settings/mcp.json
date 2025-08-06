@@ -27,7 +27,10 @@
         "summarize_changes",
         "get_current_config",
         "think_about_collected_information",
-        "read_memory"
+        "read_memory",
+        "find_file",
+        "find_file",
+        "replace_symbol_body"
       ]
     }
   }

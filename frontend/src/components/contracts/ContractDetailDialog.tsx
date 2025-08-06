@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { ContractStatusDialog } from './ContractStatusDialog'
-import { useCheckInContract } from '@/hooks/useContracts'
+import { CheckInDialog } from './CheckInDialog'
+import { CheckOutDialog } from './CheckOutDialog'
 import { 
   X,
   FileText,
   Home,
   Users,
   User,
-  Wallet,
+  // Wallet, // Removed unused import
   Pencil,
   LogOut,
   RefreshCw,
@@ -18,6 +19,7 @@ import {
   Fingerprint,
   Cake,
   Building,
+  Receipt,
   LucideIcon
 } from 'lucide-react'
 import { ContractWithDetails } from '@/types/contract'
@@ -114,7 +116,8 @@ export function ContractDetailDialog({
   onEdit 
 }: ContractDetailDialogProps) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
-  const checkInMutation = useCheckInContract()
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false)
+  const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = useState(false)
 
   if (!contract) return null
 
@@ -175,6 +178,16 @@ export function ContractDetailDialog({
     isMain: false
   }))
 
+  const handleCheckInSuccess = () => {
+    setIsCheckInDialogOpen(false)
+    // The mutation will automatically invalidate queries and update the UI
+  }
+
+  const handleCheckOutSuccess = () => {
+    setIsCheckOutDialogOpen(false)
+    // The mutation will automatically invalidate queries and update the UI
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -207,8 +220,8 @@ export function ContractDetailDialog({
             <div className="flex items-center justify-end gap-3 mb-6">
               {contract.status === 'ACTIVE' && (
                 <button 
-                  onClick={() => setIsStatusDialogOpen(true)}
-                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors"
+                  onClick={() => setIsCheckOutDialogOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm"
                 >
                   <LogOut className="w-4 h-4" /> Check-out
                 </button>
@@ -216,12 +229,10 @@ export function ContractDetailDialog({
               
               {contract.status !== 'ACTIVE' && contract.status !== 'TERMINATED' && (
                 <button 
-                  onClick={() => checkInMutation.mutate(contract.id)}
-                  disabled={checkInMutation.isPending}
-                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50"
+                  onClick={() => setIsCheckInDialogOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-sm"
                 >
-                  <Building className="w-4 h-4" /> 
-                  {checkInMutation.isPending ? 'Đang xử lý...' : 'Check-in'}
+                  <Building className="w-4 h-4" /> Check-in
                 </button>
               )}
               
@@ -324,42 +335,58 @@ export function ContractDetailDialog({
                   </div>
                 </InfoCard>
 
-                <InfoCard title="Hóa đơn" icon={Wallet}>
-                  <InfoRow label="Tổng hóa đơn" value={contract._count?.bills || 0} />
-                  {contract.bills && contract.bills.length > 0 && (
-                    <>
-                      <InfoRow 
-                        label="Đã thanh toán" 
-                        value={contract.bills.filter(bill => bill.status === 'PAID').length}
-                        valueColorClass="text-green-600"
-                      />
-                      <InfoRow 
-                        label="Chưa thanh toán" 
-                        value={contract.bills.filter(bill => bill.status === 'UNPAID').length}
-                        valueColorClass="text-red-600"
-                      />
-                      <InfoRow 
-                        label="Quá hạn" 
-                        value={contract.bills.filter(bill => bill.status === 'OVERDUE').length}
-                        valueColorClass="text-orange-600"
-                      />
-                    </>
-                  )}
-                  <button className="w-full mt-2 text-center text-sm font-medium text-blue-600 hover:text-blue-700 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                    Xem tất cả hóa đơn
-                  </button>
-                </InfoCard>
+                {/* Bills Summary */}
+                {contract.bills && contract.bills.length > 0 && (
+                  <InfoCard title="Hóa đơn gần đây" icon={Receipt}>
+                    <div className="space-y-3">
+                      {contract.bills.slice(0, 3).map((bill) => (
+                        <div key={bill.id} className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">
+                              Tháng {bill.month}/{bill.year}
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              {bill.status === 'PAID' ? 'Đã thanh toán' : 
+                               bill.status === 'OVERDUE' ? 'Quá hạn' : 'Chưa thanh toán'}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-bold text-slate-900">
+                              {formatCurrency(bill.totalAmount)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </InfoCard>
+                )}
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Status Change Dialog */}
+      {/* Status Dialog */}
       <ContractStatusDialog
         contract={contract}
         open={isStatusDialogOpen}
         onOpenChange={setIsStatusDialogOpen}
+      />
+
+      {/* Check-in Dialog */}
+      <CheckInDialog
+        contract={contract}
+        open={isCheckInDialogOpen}
+        onOpenChange={setIsCheckInDialogOpen}
+        onSuccess={handleCheckInSuccess}
+      />
+
+      {/* Check-out Dialog */}
+      <CheckOutDialog
+        contract={contract}
+        open={isCheckOutDialogOpen}
+        onOpenChange={setIsCheckOutDialogOpen}
+        onSuccess={handleCheckOutSuccess}
       />
     </>
   )

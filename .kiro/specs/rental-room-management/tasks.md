@@ -96,7 +96,7 @@
     - Add residency history display in tenant profile
     - _Requirements: 2.4_
 
-- [ ] 6. Implement contract management system
+- [x] 6. Implement contract management system
   - [x] 6.1 Create contract CRUD API endpoints
     - Implement GET /api/contracts with filtering and pagination
     - Implement POST /api/contracts for creating new contracts
@@ -111,9 +111,7 @@
     - Create contract status management UI
     - _Requirements: 3.1, 3.2, 3.5, 3.6_
 
-  - [ ] 6.3 Implement check-in/check-out functionality
-
-
+  - [x] 6.3 Implement check-in/check-out functionality
 
 
 
@@ -167,15 +165,16 @@
     - Create bill validation and error handling
     - _Requirements: 4.3, 4.4, 4.5_
 
-- [ ] 9. Implement bill management system
-  - [ ] 9.1 Create bill CRUD API endpoints
+- [x] 9. Implement bill management system
+  - [x] 9.1 Create bill CRUD API endpoints
     - Implement GET /api/bills with filtering and pagination
     - Implement POST /api/bills for manual bill creation
     - Implement PUT /api/bills/:id for bill updates
     - Add POST /api/bills/:id/pay for payment processing
     - _Requirements: 4.5, 4.6_
 
-  - [ ] 9.2 Build bill management UI components
+  - [x] 9.2 Build bill management UI components
+
     - Create bill list view with status filtering
     - Implement bill details view with payment history
     - Add payment marking functionality
@@ -183,7 +182,7 @@
     - _Requirements: 4.5, 4.6, 4.7_
 
 - [ ] 10. Implement dashboard and reporting system
-  - [ ] 10.1 Create dashboard API endpoints
+  - [x] 10.1 Create dashboard API endpoints
     - Implement GET /api/dashboard/overview for key metrics
     - Implement GET /api/dashboard/revenue for chart data
     - Add GET /api/dashboard/notifications for alerts

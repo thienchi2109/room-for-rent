@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Building, Users, FileText, Settings } from 'lucide-react'
+import { Home, Building, Users, FileText, DollarSign, Settings } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { useSettingsStore } from '@/store/settings'
 import { LogoutButton } from '@/components/auth/LogoutButton'
@@ -12,6 +12,7 @@ const navigation = [
   { name: 'Quản lý phòng', href: '/rooms', icon: Building },
   { name: 'Khách thuê', href: '/tenants', icon: Users },
   { name: 'Hợp đồng', href: '/contracts', icon: FileText },
+  { name: 'Hóa đơn', href: '/bills', icon: DollarSign },
   { name: 'Cài đặt', href: '/settings', icon: Settings },
 ]
 
@@ -88,7 +89,7 @@ export function Navigation() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="xl:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid grid-cols-6 h-16">
           {navigation.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon
