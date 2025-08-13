@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Building, Users, FileText, DollarSign, Settings } from 'lucide-react'
+import { Home, Building, Users, FileText, DollarSign, BarChart3, Settings } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { useSettingsStore } from '@/store/settings'
 import { LogoutButton } from '@/components/auth/LogoutButton'
@@ -13,6 +13,7 @@ const navigation = [
   { name: 'Khách thuê', shortName: 'Khách', href: '/tenants', icon: Users },
   { name: 'Hợp đồng', shortName: 'Hợp đồng', href: '/contracts', icon: FileText },
   { name: 'Hóa đơn', shortName: 'Hóa đơn', href: '/bills', icon: DollarSign },
+  { name: 'Báo cáo', shortName: 'Báo cáo', href: '/reports', icon: BarChart3 },
   { name: 'Cài đặt', shortName: 'Cài đặt', href: '/settings', icon: Settings },
 ]
 

@@ -28,25 +28,30 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit & { responseType?: 'json' | 'blob' } = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
-    
+    const { responseType = 'json', ...fetchOptions } = options
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
-        ...options.headers,
+        ...fetchOptions.headers,
       },
-      ...options,
+      ...fetchOptions,
     }
 
     try {
       const response = await fetch(url, config)
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.message || `HTTP ${response.status}`)
+      }
+
+      if (responseType === 'blob') {
+        return response.blob() as Promise<T>
       }
 
       return await response.json()
@@ -57,8 +62,8 @@ class ApiClient {
   }
 
   // HTTP methods
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' })
+  async get<T>(endpoint: string, options?: { responseType?: 'json' | 'blob' }): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET', ...options })
   }
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
@@ -117,4 +122,5 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)
+export const api = apiClient // Export as 'api' for convenience
 export default apiClient
