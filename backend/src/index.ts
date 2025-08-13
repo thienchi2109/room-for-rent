@@ -10,6 +10,7 @@ import contractRoutes from './routes/contracts'
 import residencyRecordRoutes from './routes/residencyRecords'
 import dashboardRoutes from './routes/dashboard'
 import billRoutes from './routes/bills'
+import reportRoutes from './routes/reports'
 
 // Load environment variables
 dotenv.config()
@@ -44,6 +45,7 @@ app.use('/api/contracts', contractRoutes)
 app.use('/api/residency-records', residencyRecordRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/bills', billRoutes)
+app.use('/api/reports', reportRoutes)
 
 app.get('/api', (req, res) => {
   res.json({ message: 'Rental Management API Server' })
