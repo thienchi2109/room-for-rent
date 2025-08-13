@@ -189,7 +189,7 @@
     - Create revenue calculation and aggregation logic
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 10.2 Build dashboard UI with charts
+  - [x] 10.2 Build dashboard UI with charts
     - Create dashboard overview with key statistics
     - Implement revenue charts using Recharts
     - Add room occupancy visualization
