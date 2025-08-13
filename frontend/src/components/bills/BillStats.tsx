@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import React from 'react'
 import { useBills } from '../../hooks/useBills'
 import { BillStatus } from '../../../../shared/src/types/models'
 import { Card, CardContent } from '../ui/card'
@@ -20,18 +21,25 @@ interface BillStatsProps {
   year?: number
 }
 
-export function BillStats({ className, month, year }: BillStatsProps) {
-  // Get current month/year if not provided
-  const currentDate = new Date()
-  const currentMonth = month || currentDate.getMonth() + 1
-  const currentYear = year || currentDate.getFullYear()
+function BillStats({ className, month, year }: BillStatsProps) {
+  // Get current month/year if not provided - memoize to avoid re-creating Date object
+  const { currentMonth, currentYear } = useMemo(() => {
+    const currentDate = new Date()
+    return {
+      currentMonth: month || currentDate.getMonth() + 1,
+      currentYear: year || currentDate.getFullYear()
+    }
+  }, [month, year])
 
-  // Fetch bills for the specified period
-  const { data: billsData, isLoading } = useBills({
+  // Create stable filter object to prevent unnecessary re-fetching
+  const statsFilters = useMemo(() => ({
     month: currentMonth,
     year: currentYear,
     limit: 1000 // Get all bills for stats
-  })
+  }), [currentMonth, currentYear])
+
+  // Fetch bills for the specified period
+  const { data: billsData, isLoading } = useBills(statsFilters)
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -251,3 +259,8 @@ export function BillStats({ className, month, year }: BillStatsProps) {
     </div>
   )
 }
+
+// Export both default and named for compatibility
+const MemoizedBillStats = React.memo(BillStats)
+export default MemoizedBillStats
+export { MemoizedBillStats as BillStats }

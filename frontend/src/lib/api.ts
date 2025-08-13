@@ -92,8 +92,27 @@ class ApiClient {
   }
 
   // Dashboard API
-  async getDashboardStats() {
-    return this.get('/api/dashboard/stats')
+  async getDashboardOverview(month?: number, year?: number) {
+    const params = new URLSearchParams()
+    if (month) params.append('month', month.toString())
+    if (year) params.append('year', year.toString())
+    
+    return this.get(`/api/dashboard/overview${params.toString() ? '?' + params.toString() : ''}`)
+  }
+
+  async getDashboardRevenue(year?: number, months?: number) {
+    const params = new URLSearchParams()
+    if (year) params.append('year', year.toString())
+    if (months) params.append('months', months.toString())
+    
+    return this.get(`/api/dashboard/revenue${params.toString() ? '?' + params.toString() : ''}`)
+  }
+
+  async getDashboardNotifications(limit?: number) {
+    const params = new URLSearchParams()
+    if (limit) params.append('limit', limit.toString())
+    
+    return this.get(`/api/dashboard/notifications${params.toString() ? '?' + params.toString() : ''}`)
   }
 }
 
