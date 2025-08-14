@@ -16,7 +16,6 @@ export class ReportService {
    */
   static async generateRevenueReport(filters: ReportFilters): Promise<ReportResponse<RevenueReportData>> {
     const params = new URLSearchParams({
-      type: 'revenue',
       startDate: filters.dateRange.startDate.toISOString(),
       endDate: filters.dateRange.endDate.toISOString(),
     })
@@ -25,7 +24,7 @@ export class ReportService {
       filters.roomIds.forEach(id => params.append('roomIds', id))
     }
     
-    const response = await api.get<ReportResponse<RevenueReportData>>(`/reports/revenue?${params.toString()}`)
+    const response = await api.get<ReportResponse<RevenueReportData>>(`/api/reports/revenue?${params.toString()}`)
     return response
   }
   
@@ -34,7 +33,6 @@ export class ReportService {
    */
   static async generateOccupancyReport(filters: ReportFilters): Promise<ReportResponse<OccupancyReportData>> {
     const params = new URLSearchParams({
-      type: 'occupancy',
       startDate: filters.dateRange.startDate.toISOString(),
       endDate: filters.dateRange.endDate.toISOString(),
     })
@@ -43,7 +41,7 @@ export class ReportService {
       filters.roomIds.forEach(id => params.append('roomIds', id))
     }
     
-    const response = await api.get<ReportResponse<OccupancyReportData>>(`/reports/occupancy?${params.toString()}`)
+    const response = await api.get<ReportResponse<OccupancyReportData>>(`/api/reports/occupancy?${params.toString()}`)
     return response
   }
   
@@ -52,7 +50,6 @@ export class ReportService {
    */
   static async generateBillReport(filters: ReportFilters): Promise<ReportResponse<BillReportData>> {
     const params = new URLSearchParams({
-      type: 'bills',
       startDate: filters.dateRange.startDate.toISOString(),
       endDate: filters.dateRange.endDate.toISOString(),
     })
@@ -61,7 +58,7 @@ export class ReportService {
       filters.roomIds.forEach(id => params.append('roomIds', id))
     }
     
-    const response = await api.get<ReportResponse<BillReportData>>(`/reports/bills?${params.toString()}`)
+    const response = await api.get<ReportResponse<BillReportData>>(`/api/reports/bills?${params.toString()}`)
     return response
   }
   
@@ -70,7 +67,6 @@ export class ReportService {
    */
   static async getReportSummary(filters: ReportFilters): Promise<ReportSummary> {
     const params = new URLSearchParams({
-      type: 'summary',
       startDate: filters.dateRange.startDate.toISOString(),
       endDate: filters.dateRange.endDate.toISOString(),
     })
@@ -79,7 +75,7 @@ export class ReportService {
       filters.roomIds.forEach(id => params.append('roomIds', id))
     }
     
-    const response = await api.get<{ success: boolean; data: ReportSummary }>(`/reports/summary?${params.toString()}`)
+    const response = await api.get<{ success: boolean; data: ReportSummary }>(`/api/reports/summary?${params.toString()}`)
     return response.data
   }
   
@@ -114,7 +110,7 @@ export class ReportService {
       params.append('title', options.title)
     }
     
-    const response = await api.get<Blob>(`/reports/export?${params.toString()}`, {
+    const response = await api.get<Blob>(`/api/reports/export?${params.toString()}`, {
       responseType: 'blob'
     })
 

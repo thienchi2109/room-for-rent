@@ -15,7 +15,7 @@ export class RoomService {
   // Get all rooms with pagination and filtering
   static async getRooms(filters?: RoomFilters): Promise<PaginationResponse<Room>> {
     const params = new URLSearchParams()
-    
+
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.limit) params.append('limit', filters.limit.toString())
     if (filters?.status) params.append('status', filters.status)
@@ -27,6 +27,16 @@ export class RoomService {
     const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH
 
     return apiClient.get<PaginationResponse<Room>>(endpoint)
+  }
+
+  // Get all rooms without pagination (for dropdowns, filters, etc.)
+  static async getAllRooms(): Promise<PaginationResponse<Room>> {
+    const params = new URLSearchParams()
+    params.append('limit', '1000') // Set a high limit to get all rooms
+    params.append('page', '1')
+
+    const url = `${this.BASE_PATH}?${params.toString()}`
+    return apiClient.get<PaginationResponse<Room>>(url)
   }
 
   // Get a specific room by ID

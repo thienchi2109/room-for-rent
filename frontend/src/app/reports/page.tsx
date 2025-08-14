@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, Download, Calendar, Filter } from 'lucide-react'
 import { ReportType, DateRange } from '@/types/report'
@@ -10,6 +10,7 @@ import { getDateRangeFromPreset, formatDateRange } from '@/lib/dateRangeUtils'
 import { ReportBuilder } from '@/components/reports/ReportBuilder'
 import { ReportPreview } from '@/components/reports/ReportPreview'
 import { DateRangePicker } from '@/components/reports/DateRangePicker'
+import { RoomSearchFilter } from '@/components/reports/RoomSearchFilter'
 import { ExportButtons } from '@/components/reports/ExportButtons'
 
 export default function ReportsPage() {
@@ -60,22 +61,22 @@ export default function ReportsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {reportTypes.map((type) => (
-              <Card 
+              <div
                 key={type.value}
-                className={`cursor-pointer transition-colors ${
-                  selectedType === type.value 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'hover:border-gray-300'
+                className={`cursor-pointer transition-colors border rounded-lg p-4 ${
+                  selectedType === type.value
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => setSelectedType(type.value as ReportType)}
               >
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{type.label}</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
+                <div className="pb-2">
+                  <h3 className="text-sm font-semibold">{type.label}</h3>
+                </div>
+                <div className="pt-0">
                   <p className="text-xs text-muted-foreground">{type.description}</p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </CardContent>
@@ -103,15 +104,11 @@ export default function ReportsPage() {
             </div>
             <div>
               <label className="text-sm font-medium mb-2 block">Phòng (tùy chọn)</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tất cả phòng" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả phòng</SelectItem>
-                  {/* Room options will be loaded dynamically */}
-                </SelectContent>
-              </Select>
+              <RoomSearchFilter
+                selectedRoomIds={roomIds}
+                onRoomIdsChange={setRoomIds}
+                placeholder="Tìm kiếm phòng theo số phòng..."
+              />
             </div>
           </div>
         </CardContent>
@@ -142,23 +139,23 @@ export default function ReportsPage() {
       </div>
 
       {/* Export Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+      <div className="border border-gray-200 rounded-lg bg-white shadow-sm">
+        <div className="p-6 pb-4">
+          <div className="flex items-center space-x-2 mb-2">
             <Download className="w-5 h-5" />
-            <span>Xuất báo cáo</span>
-          </CardTitle>
-          <CardDescription>
+            <h2 className="text-lg font-semibold">Xuất báo cáo</h2>
+          </div>
+          <p className="text-sm text-gray-600">
             Tải xuống báo cáo dưới định dạng PDF hoặc Excel
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ExportButtons 
+          </p>
+        </div>
+        <div className="px-6 pb-6">
+          <ExportButtons
             type={selectedType}
             filters={filters}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

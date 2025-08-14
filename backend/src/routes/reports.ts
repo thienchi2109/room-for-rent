@@ -10,7 +10,6 @@ const router = Router()
 
 // Validation schemas
 const reportQuerySchema = Joi.object({
-  type: Joi.string().valid('revenue', 'occupancy', 'tenants', 'bills', 'contracts').required(),
   startDate: Joi.date().required(),
   endDate: Joi.date().min(Joi.ref('startDate')).required(),
   roomIds: Joi.array().items(Joi.string()).optional(),
@@ -27,6 +26,15 @@ const exportQuerySchema = Joi.object({
   roomIds: Joi.array().items(Joi.string()).optional(),
   filename: Joi.string().optional(),
   title: Joi.string().optional()
+})
+
+const summaryQuerySchema = Joi.object({
+  startDate: Joi.date().required(),
+  endDate: Joi.date().min(Joi.ref('startDate')).required(),
+  roomIds: Joi.array().items(Joi.string()).optional(),
+  tenantIds: Joi.array().items(Joi.string()).optional(),
+  contractIds: Joi.array().items(Joi.string()).optional(),
+  status: Joi.array().items(Joi.string()).optional()
 })
 
 /**
@@ -250,7 +258,7 @@ router.get('/export', authenticate, validateRequest(exportQuerySchema), async (r
  * GET /api/reports/summary
  * Get report summary for given filters
  */
-router.get('/summary', authenticate, validateRequest(reportQuerySchema), async (req: Request, res: Response) => {
+router.get('/summary', authenticate, validateRequest(summaryQuerySchema), async (req: Request, res: Response) => {
   try {
     const { startDate, endDate, roomIds } = req.query
     

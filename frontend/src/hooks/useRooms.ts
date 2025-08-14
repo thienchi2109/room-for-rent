@@ -28,6 +28,16 @@ export function useRooms(filters?: RoomFilters) {
   })
 }
 
+// Hook to get all rooms without pagination (for dropdowns, filters, etc.)
+export function useAllRooms() {
+  return useQuery({
+    queryKey: ['rooms', 'all'],
+    queryFn: () => RoomService.getAllRooms(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  })
+}
+
 // Hook to get a specific room
 export function useRoom(id: string, enabled = true) {
   return useQuery({

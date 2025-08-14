@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { FileText, Download, Loader2 } from 'lucide-react'
 import { ReportType, ReportFilters } from '@/types/report'
 import { useExportReport } from '@/hooks/useReports'
@@ -113,18 +113,17 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
           <span className="font-medium">Xuất PDF</span>
         </Button>
 
+        {/* Advanced Export Button */}
+        <button
+          onClick={() => setIsExportDialogOpen(true)}
+          className="flex items-center space-x-2 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2 rounded-md font-medium text-sm"
+        >
+          <Download className="w-5 h-5" />
+          <span className="font-medium">Tùy chỉnh xuất</span>
+        </button>
+
         {/* Advanced Export Dialog */}
         <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-          <DialogTrigger>
-            <Button
-              variant="ghost"
-              className="flex items-center space-x-2 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-200"
-              size="lg"
-            >
-              <Download className="w-5 h-5" />
-              <span className="font-medium">Tùy chỉnh xuất</span>
-            </Button>
-          </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xuất báo cáo</DialogTitle>
@@ -138,20 +137,26 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
             <div className="space-y-2">
               <Label>Định dạng</Label>
               <div className="flex space-x-2">
-                <Button
-                  variant={exportFormat === 'excel' ? 'default' : 'outline'}
-                  size="sm"
+                <div
+                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 cursor-pointer ${
+                    exportFormat === 'excel'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                  }`}
                   onClick={() => setExportFormat('excel')}
                 >
                   Excel (.xlsx)
-                </Button>
-                <Button
-                  variant={exportFormat === 'pdf' ? 'default' : 'outline'}
-                  size="sm"
+                </div>
+                <div
+                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 cursor-pointer ${
+                    exportFormat === 'pdf'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                  }`}
                   onClick={() => setExportFormat('pdf')}
                 >
                   PDF (.pdf)
-                </Button>
+                </div>
               </div>
             </div>
 
@@ -206,15 +211,17 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
+            <div
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer"
               onClick={() => setIsExportDialogOpen(false)}
             >
               Hủy
-            </Button>
-            <Button
-              onClick={() => handleExport(exportFormat)}
-              disabled={exportMutation.isPending}
+            </div>
+            <div
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer ${
+                exportMutation.isPending ? 'opacity-50 pointer-events-none' : ''
+              }`}
+              onClick={() => !exportMutation.isPending && handleExport(exportFormat)}
             >
               {exportMutation.isPending ? (
                 <>
@@ -227,7 +234,7 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
                   Xuất báo cáo
                 </>
               )}
-            </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
         </Dialog>
