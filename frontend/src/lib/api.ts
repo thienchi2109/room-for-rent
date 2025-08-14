@@ -1,6 +1,33 @@
 // API client configuration
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// Determine API base URL based on environment
+const getApiBaseUrl = () => {
+  // If explicitly set via environment variable, use it
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL
+  }
+
+  // For production builds, try to detect Render environment
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+
+    // If running on Render (*.onrender.com), assume backend is also on Render
+    if (hostname.includes('onrender.com')) {
+      // Backend service URL on Render
+      return 'https://happyhome-isdm.onrender.com'
+    }
+  }
+
+  // Default to localhost for development
+  return 'http://localhost:3001'
+}
+
+const API_BASE_URL = getApiBaseUrl()
+
+// Log the API URL for debugging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Base URL:', API_BASE_URL)
+}
 
 class ApiClient {
   private baseURL: string
@@ -47,7 +74,18 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `HTTP ${response.status}`)
+        const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`
+
+        // Log detailed error info for debugging
+        console.error('API Error Details:', {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        })
+
+        throw new Error(errorMessage)
       }
 
       if (responseType === 'blob') {
@@ -56,7 +94,15 @@ class ApiClient {
 
       return await response.json()
     } catch (error) {
-      console.error('API request failed:', error)
+      // Enhanced error logging for production debugging
+      console.error('API request failed:', {
+        url,
+        error: error instanceof Error ? error.message : error,
+        config: {
+          method: config.method,
+          headers: config.headers
+        }
+      })
       throw error
     }
   }
