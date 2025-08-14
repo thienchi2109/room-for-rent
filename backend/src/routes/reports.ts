@@ -20,7 +20,7 @@ const reportQuerySchema = Joi.object({
 
 const exportQuerySchema = Joi.object({
   type: Joi.string().valid('revenue', 'occupancy', 'bills').required(),
-  format: Joi.string().valid('pdf', 'excel').required(),
+  format: Joi.string().valid('excel').required(),
   startDate: Joi.date().required(),
   endDate: Joi.date().min(Joi.ref('startDate')).required(),
   roomIds: Joi.array().items(Joi.string()).optional(),
@@ -194,44 +194,28 @@ router.get('/export', authenticate, validateRequest(exportQuerySchema), async (r
     
     const summary = await ReportService.generateReportSummary(filters)
     
+    // Only support Excel format
+    contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
     switch (type) {
       case 'revenue':
         const revenueData = await ReportService.generateRevenueReport(filters)
-        if (format === 'excel') {
-          buffer = await ExportUtils.exportRevenueToExcel(revenueData, summary, exportOptions)
-          contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          defaultFilename = `revenue-report-${Date.now()}.xlsx`
-        } else {
-          buffer = await ExportUtils.exportRevenueToPDF(revenueData, summary, exportOptions)
-          contentType = 'application/pdf'
-          defaultFilename = `revenue-report-${Date.now()}.pdf`
-        }
+        buffer = await ExportUtils.exportRevenueToExcel(revenueData, summary, exportOptions)
+        defaultFilename = `revenue-report-${Date.now()}.xlsx`
         break
-        
+
       case 'occupancy':
         const occupancyData = await ReportService.generateOccupancyReport(filters)
-        if (format === 'excel') {
-          buffer = await ExportUtils.exportOccupancyToExcel(occupancyData, summary, exportOptions)
-          contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          defaultFilename = `occupancy-report-${Date.now()}.xlsx`
-        } else {
-          // PDF export for occupancy (would need to implement)
-          throw new Error('PDF export for occupancy report not implemented yet')
-        }
+        buffer = await ExportUtils.exportOccupancyToExcel(occupancyData, summary, exportOptions)
+        defaultFilename = `occupancy-report-${Date.now()}.xlsx`
         break
-        
+
       case 'bills':
         const billData = await ReportService.generateBillReport(filters)
-        if (format === 'excel') {
-          buffer = await ExportUtils.exportBillToExcel(billData, summary, exportOptions)
-          contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          defaultFilename = `bill-report-${Date.now()}.xlsx`
-        } else {
-          // PDF export for bills (would need to implement)
-          throw new Error('PDF export for bill report not implemented yet')
-        }
+        buffer = await ExportUtils.exportBillToExcel(billData, summary, exportOptions)
+        defaultFilename = `bill-report-${Date.now()}.xlsx`
         break
-        
+
       default:
         throw new Error(`Unsupported report type: ${type}`)
     }
@@ -246,10 +230,12 @@ router.get('/export', authenticate, validateRequest(exportQuerySchema), async (r
     
   } catch (error) {
     console.error('Export report error:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Failed to export report'
+      message: error instanceof Error ? error.message : 'Failed to export report',
+      details: process.env.NODE_ENV === 'development' ? error : undefined
     })
   }
 })

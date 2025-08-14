@@ -17,7 +17,8 @@ interface ExportButtonsProps {
 
 export function ExportButtons({ type, filters }: ExportButtonsProps) {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
-  const [exportFormat, setExportFormat] = useState<'pdf' | 'excel'>('excel')
+  // Always use Excel format
+  const exportFormat = 'excel'
   const [customFilename, setCustomFilename] = useState('')
   const [customTitle, setCustomTitle] = useState('')
   
@@ -44,20 +45,20 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
 
   const getDefaultFilename = () => {
     const timestamp = new Date().toISOString().split('T')[0]
-    const extension = exportFormat === 'excel' ? 'xlsx' : 'pdf'
-    return `bao-cao-${type}-${timestamp}.${extension}`
+    return `bao-cao-${type}-${timestamp}.xlsx`
   }
 
-  const handleExport = async (format: 'pdf' | 'excel') => {
+  const handleExport = async () => {
     const options = {
       filename: customFilename || getDefaultFilename(),
       title: customTitle || getDefaultTitle()
     }
 
     try {
+      console.log('Starting export with:', { type, format: 'excel', filters, options })
       await exportMutation.mutateAsync({
         type,
-        format,
+        format: 'excel',
         filters,
         options
       })
@@ -66,11 +67,13 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
       setCustomTitle('')
     } catch (error) {
       console.error('Export failed:', error)
+      // Show user-friendly error message
+      alert(`Xuất báo cáo thất bại: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`)
     }
   }
 
-  const handleQuickExport = (format: 'pdf' | 'excel') => {
-    handleExport(format)
+  const handleQuickExport = () => {
+    handleExport()
   }
 
   return (
@@ -83,9 +86,9 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
       </div>
 
       <div className="flex flex-wrap gap-4">
-        {/* Quick Export Buttons */}
+        {/* Quick Export Button */}
         <Button
-          onClick={() => handleQuickExport('excel')}
+          onClick={handleQuickExport}
           disabled={exportMutation.isPending}
           className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
           size="lg"
@@ -96,21 +99,6 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
             <FileText className="w-5 h-5" />
           )}
           <span className="font-medium">Xuất Excel</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={() => handleQuickExport('pdf')}
-          disabled={exportMutation.isPending}
-          className="flex items-center space-x-2 border-2 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300 shadow-lg hover:shadow-xl transition-all duration-200"
-          size="lg"
-        >
-          {exportMutation.isPending ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Download className="w-5 h-5" />
-          )}
-          <span className="font-medium">Xuất PDF</span>
         </Button>
 
         {/* Advanced Export Button */}
@@ -124,71 +112,55 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
 
         {/* Advanced Export Dialog */}
         <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Xuất báo cáo</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold">Xuất báo cáo</DialogTitle>
+            <DialogDescription className="text-gray-600">
               Tùy chỉnh tên file và tiêu đề báo cáo trước khi xuất
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Format Selection */}
-            <div className="space-y-2">
-              <Label>Định dạng</Label>
-              <div className="flex space-x-2">
-                <div
-                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 cursor-pointer ${
-                    exportFormat === 'excel'
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                  }`}
-                  onClick={() => setExportFormat('excel')}
-                >
-                  Excel (.xlsx)
-                </div>
-                <div
-                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 cursor-pointer ${
-                    exportFormat === 'pdf'
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                  }`}
-                  onClick={() => setExportFormat('pdf')}
-                >
-                  PDF (.pdf)
-                </div>
+
+          <div className="space-y-6 py-2">
+            {/* Format Info */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">Định dạng</Label>
+              <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                <FileText className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium text-green-800">Excel (.xlsx)</span>
               </div>
             </div>
 
             {/* Custom Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Tiêu đề báo cáo</Label>
+            <div className="space-y-3">
+              <Label htmlFor="title" className="text-sm font-medium text-gray-700">Tiêu đề báo cáo</Label>
               <Input
                 id="title"
                 value={customTitle}
                 onChange={(e) => setCustomTitle(e.target.value)}
                 placeholder={getDefaultTitle()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Custom Filename */}
-            <div className="space-y-2">
-              <Label htmlFor="filename">Tên file</Label>
+            <div className="space-y-3">
+              <Label htmlFor="filename" className="text-sm font-medium text-gray-700">Tên file</Label>
               <Input
                 id="filename"
                 value={customFilename}
                 onChange={(e) => setCustomFilename(e.target.value)}
                 placeholder={getDefaultFilename()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500 mt-1">
                 Không cần thêm phần mở rộng file
               </p>
             </div>
 
             {/* Report Info */}
-            <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium">Thông tin báo cáo</h4>
-              <div className="text-xs space-y-1">
+            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+              <h4 className="text-sm font-medium text-gray-800">Thông tin báo cáo</h4>
+              <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>Loại:</span>
                   <span>{getReportTypeLabel()}</span>
@@ -210,18 +182,18 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
             </div>
           </div>
 
-          <DialogFooter>
-            <div
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer"
+          <DialogFooter className="pt-6 flex flex-row justify-end space-x-3">
+            <Button
+              variant="outline"
               onClick={() => setIsExportDialogOpen(false)}
+              className="px-6 py-2"
             >
               Hủy
-            </div>
-            <div
-              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer ${
-                exportMutation.isPending ? 'opacity-50 pointer-events-none' : ''
-              }`}
-              onClick={() => !exportMutation.isPending && handleExport(exportFormat)}
+            </Button>
+            <Button
+              onClick={() => !exportMutation.isPending && handleExport()}
+              disabled={exportMutation.isPending}
+              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white"
             >
               {exportMutation.isPending ? (
                 <>
@@ -230,11 +202,11 @@ export function ExportButtons({ type, filters }: ExportButtonsProps) {
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Xuất báo cáo
+                  <FileText className="w-4 h-4 mr-2" />
+                  Xuất Excel
                 </>
               )}
-            </div>
+            </Button>
           </DialogFooter>
         </DialogContent>
         </Dialog>

@@ -66,7 +66,7 @@ export function useExportReport() {
       options
     }: {
       type: ReportType
-      format: 'pdf' | 'excel'
+      format: 'excel'
       filters: ReportFilters
       options?: {
         filename?: string
@@ -74,15 +74,15 @@ export function useExportReport() {
       }
     }) => {
       const blob = await ReportService.exportReport(type, format, filters, options)
-      
+
       // Generate filename if not provided
       const timestamp = new Date().toISOString().split('T')[0]
-      const defaultFilename = `${type}-report-${timestamp}.${format === 'excel' ? 'xlsx' : 'pdf'}`
+      const defaultFilename = `${type}-report-${timestamp}.xlsx`
       const filename = options?.filename || defaultFilename
-      
+
       // Download the file
       ReportService.downloadReport(blob, filename)
-      
+
       return { filename, format, type }
     },
     onSuccess: (data) => {

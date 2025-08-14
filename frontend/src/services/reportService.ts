@@ -84,37 +84,55 @@ export class ReportService {
    */
   static async exportReport(
     type: ReportType,
-    format: 'pdf' | 'excel',
+    format: 'excel',
     filters: ReportFilters,
     options?: {
       filename?: string
       title?: string
     }
   ): Promise<Blob> {
-    const params = new URLSearchParams({
-      type,
-      format,
-      startDate: filters.dateRange.startDate.toISOString(),
-      endDate: filters.dateRange.endDate.toISOString(),
-    })
-    
-    if (filters.roomIds?.length) {
-      filters.roomIds.forEach(id => params.append('roomIds', id))
-    }
-    
-    if (options?.filename) {
-      params.append('filename', options.filename)
-    }
-    
-    if (options?.title) {
-      params.append('title', options.title)
-    }
-    
-    const response = await api.get<Blob>(`/api/reports/export?${params.toString()}`, {
-      responseType: 'blob'
-    })
+    try {
+      const params = new URLSearchParams({
+        type,
+        format,
+        startDate: filters.dateRange.startDate.toISOString(),
+        endDate: filters.dateRange.endDate.toISOString(),
+      })
 
-    return response
+      if (filters.roomIds?.length) {
+        filters.roomIds.forEach(id => params.append('roomIds', id))
+      }
+
+      if (options?.filename) {
+        params.append('filename', options.filename)
+      }
+
+      if (options?.title) {
+        params.append('title', options.title)
+      }
+
+      console.log('Export request URL:', `/api/reports/export?${params.toString()}`)
+      console.log('Export parameters:', { type, format, filters, options })
+
+      const response = await api.get<Blob>(`/api/reports/export?${params.toString()}`, {
+        responseType: 'blob'
+      })
+
+      console.log('Export response received:', response)
+
+      if (!response || !(response instanceof Blob)) {
+        throw new Error('Invalid response format - expected Blob')
+      }
+
+      if (response.size === 0) {
+        throw new Error('Empty file received from server')
+      }
+
+      return response
+    } catch (error) {
+      console.error('Export service error:', error)
+      throw error
+    }
   }
   
   /**
